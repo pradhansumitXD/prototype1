@@ -1,0 +1,159 @@
+/* Style for the entire landing page */
+.landing-container {
+  font-family: Arial, sans-serif;
+}
+
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 150px 20px;
+  background-color: #f8f8f8;
+}
+
+.hero h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 1.2em;
+  margin-bottom: 40px;
+}
+
+.explore-btn {
+  padding: 15px 30px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 1.1em;
+  transition: background 0.3s ease;
+}
+
+.explore-btn:hover {
+  background-color: #444444;
+}
+
+/* Modal styles for login and signup */
+.login-modal-container,
+.signup-modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.login-modal,
+.signup-modal {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 350px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Titles */
+.login-title,
+.signup-title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+/* Form inputs */
+.input-container {
+  margin-bottom: 15px;
+}
+
+.input-container label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.input-container input {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Forgot password */
+.forgot-password {
+  text-align: right;
+  margin-top: -10px;
+}
+
+.forgot-password a {
+  font-size: 0.8em;
+  color: #000000;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+/* Buttons */
+.login-btn,
+.signup-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-btn:hover,
+.signup-btn:hover {
+  background-color: #444444;
+}
+
+/* Links for Login/Signup */
+.signup-link,
+.login-link {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.signup-text,
+.login-text {
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.signup-text:hover,
+.login-text:hover {
+  color: #0056b3;
+}
+
+/* Close button for modal */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5em;
+  color: #888;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #000;
+}

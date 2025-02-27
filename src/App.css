@@ -1,0 +1,123 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Global Styles */
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+  }
+  
+  /* Navbar Styles */
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 15px 30px;
+  }
+  
+  .logo {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-links li a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 1rem;
+    transition: color 0.3s;
+  }
+  
+  .nav-links li a:hover {
+    color: #ff8c00;
+  }
+  
+  .auth-buttons button {
+    background-color: #ff8c00;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 15px;
+    transition: background-color 0.3s;
+  }
+  
+  .auth-buttons button:hover {
+    background-color: #e07b00;
+  }
+  
+  /* Hero Section Styles */
+  .hero {
+    text-align: center;
+    padding: 80px 20px;
+    background-color: #ffffff;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+    color: #333;
+  }
+  
+  .hero p {
+    font-size: 1.25rem;
+    color: #555;
+    margin-top: 20px;
+  }
+  
+  .explore-btn {
+    background-color: #ff8c00;
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    margin-top: 40px;
+    transition: background-color 0.3s;
+  }
+  
+  .explore-btn:hover {
+    background-color: #e07b00;
+  }
+  
+  /* General Styles for the App */
+  .App {
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .App-header {
+    text-align: center;
+    padding: 50px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    color: #333;
+  }
+  
+  button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #ff8c00;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #e07b00;
+  }
+  

@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+}
+
+
+.sell-page-container {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: -20px; 
+}
+
+.sell-form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px; 
+}
+
+.sell-heading {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #000000;
+}
+
+.sell-form {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+.form-left {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 20px; 
+}
+
+.form-right {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-size: 1rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.form-group input[type="file"] {
+    padding: 0;
+}
+
+.submit-btn {
+    background-color: #000000;
+    color: white;
+    padding: 12px 20px; 
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem; 
+    cursor: pointer;
+    width: auto; 
+    align-self: flex-start; 
+    margin-top: 20px; 
+}
+
+.submit-btn:hover {
+    background-color: #3b3c3b;
+}
+.form-group textarea {
+    height: 100px;
+}
+
+@media (max-width: 768px) {
+    .sell-form-container {
+        padding: 15px;
+    }
+
+    .sell-form {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-left,
+    .form-right {
+        margin-right: 0;
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .form-left {
+        grid-template-columns: 1fr; 
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 0.9rem;
+    }
+
+    .submit-btn {
+        width: 100%;
+        font-size: 1rem; 
+        padding: 6px 15px; 
+    }
+}
+
+@media (min-width: 1201px) {
+    .sell-form {
+        flex-direction: row; 
+        gap: 30px;
+    }
+}
