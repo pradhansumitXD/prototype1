@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Use useNavigate instead of BrowserRouter
 import Navbar from "./navbar";
 import Login from "./Login";  
 import Signup from "./Signup";  
@@ -9,6 +9,7 @@ import "./landingpage.css";
 function LandingPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const navigate = useNavigate(); // Fix navigation issue
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);
@@ -37,28 +38,20 @@ function LandingPage() {
   };
 
   return (
-    <Router>
-      <div className="landing-container">
-        <Navbar />
-        <header className="hero">
-          <h1>Find Your Perfect Car with Gaadi Nest</h1>
-          <p>Buy, Sell & Compare Cars Easily</p>
-          <button className="explore-btn" onClick={() => Navigate("/buy")}>
-            Explore Now
-          </button>
-        </header>
+    <div className="landing-container">
+      <Navbar />
+      <header className="hero">
+        <h1>Find Your Perfect Car with Gaadi Nest</h1>
+        <p>Buy, Sell & Compare Cars Easily</p>
+        <button className="explore-btn" onClick={() => navigate("/buy")}>
+          Explore Now
+        </button>
+      </header>
 
-        {/* Render modals */}
-        {isLoginModalOpen && <Login closeLoginModal={closeLoginModal} handleSubmitLogin={handleSubmitLogin} />}
-        {isSignupModalOpen && <Signup closeSignupModal={closeSignupModal} handleSubmitSignup={handleSubmitSignup} />}
-
-        <Routes>
-          <Route path="/" element={<Navigate to="/admin-dashboard" />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        </Routes>
-      </div>
-    </Router>
+      {/* Render modals */}
+      {isLoginModalOpen && <Login closeLoginModal={closeLoginModal} handleSubmitLogin={handleSubmitLogin} />}
+      {isSignupModalOpen && <Signup closeSignupModal={closeSignupModal} handleSubmitSignup={handleSubmitSignup} />}
+    </div>
   );
 }
 
