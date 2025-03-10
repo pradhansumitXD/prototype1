@@ -24,69 +24,87 @@ function Signup({ closeModal }) {
 
   const handleSubmitSignup = async (e) => {
     e.preventDefault();
-    setErrorMessage(''); // Clear previous error message
-    setSuccessMessage(''); // Clear previous success message
-
-    // Input validation
-    if (!signupName || !signupEmail || !signupPhone || !signupPassword) {
-      setErrorMessage('All fields are required.');
-      return;
-    }
-
-    if (!validateEmail(signupEmail)) {
-      setErrorMessage('Please enter a valid email address.');
-      return;
-    }
-
-    if (!validatePhone(signupPhone)) {
-      setErrorMessage('Please enter a valid phone number (10 digits).');
-      return;
-    }
-
-    const userData = {
-      username: signupName,
-      email: signupEmail,
-      phone: signupPhone,
-      password: signupPassword, 
-      role: role, // Send the role along with other details
-    };
-
-    console.log('Sending data to backend:', userData); // Log the data to check
-
+    setErrorMessage('');
+    setSuccessMessage('');
+    
     try {
-      const response = await fetch('http://localhost:5000/api/signup', {
+      // Input validation
+      if (!signupName || !signupEmail || !signupPhone || !signupPassword) {
+        setErrorMessage('All fields are required.');
+        return;
+      }
+    
+      if (!validateEmail(signupEmail)) {
+        setErrorMessage('Please enter a valid email address.');
+        return;
+      }
+    
+      if (!validatePhone(signupPhone)) {
+        setErrorMessage('Please enter a valid phone number (10 digits).');
+        return;
+      }
+    
+      const userData = {
+        username: signupName.trim(),
+        email: signupEmail.trim().toLowerCase(),
+        phone: signupPhone.trim(),
+        password: signupPassword,
+        role: role
+      };
+    
+      console.log('Attempting to register with:', {
+        ...userData,
+        password: '[HIDDEN]'
+      });
+    
+      // Updated fetch call with error handling
+      const response = await fetch('http://localhost:5001/api/users/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(userData)
       });
 
       const data = await response.json();
-      console.log('Signup response:', data); // Check backend response
-
+      console.log('Registration response:', data);
+    
       if (!response.ok) {
-        throw new Error(data.message || 'Error during signup');
+        throw new Error(data.message || 'Registration failed');
       }
-
-      setErrorMessage(''); // Clear previous errors
-      setSuccessMessage(data.message || 'Signup successful!'); // Ensure message is set
-
-      // Delay form reset so the message stays visible
+    
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      setSuccessMessage('Registration successful! Redirecting...');
+      
+      // Clear form and redirect
       setTimeout(() => {
         setSignupName('');
         setSignupEmail('');
         setSignupPhone('');
         setSignupPassword('');
         setRole('user');
-        setSuccessMessage(''); // Clear message after form reset
-      }, 2000);
+        setSuccessMessage('');
+        closeModal();
+        // Redirect based on role
+        if (data.user.role === 'admin') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/';
+        }
+      }, 1500);
+    
     } catch (error) {
-      console.error('Error during signup:', error);
-      setErrorMessage(error.message || 'Error during signup. Please try again.');
+      console.error('Registration error:', error);
+      setErrorMessage(
+        error.message.includes('Network connection failed')
+          ? error.message
+          : 'Registration failed. Please try again.'
+      );
     }
   };
-
+  
   return (
     <div className="signup-modal">
       <button className="close-btn" onClick={closeModal}>✖</button>

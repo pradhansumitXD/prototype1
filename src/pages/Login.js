@@ -1,57 +1,73 @@
 import React, { useState } from "react";
-import "./login.css"; // Import the CSS file
+import { useNavigate } from "react-router-dom"; 
+import "./login.css"; 
 
 function Login({ closeModal }) {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); 
 
-  const API_URL = "http://localhost:5000/api/login"; // Change if backend runs on a different port
+  const navigate = useNavigate();  
+
+  // Update API URL to match the backend route
+  // Update port number if you changed it in server.js
+  const API_URL = "http://localhost:5001/api/users/login";
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMessage(""); // Clear previous error
+    setErrorMessage(""); 
+    setSuccessMessage(""); 
 
-    // Input validation
     if (!loginEmail || !loginPassword) {
       setLoading(false);
       setErrorMessage("Both email and password are required.");
       return;
     }
 
-    const loginData = {
-      email: loginEmail,
-      password: loginPassword,
-    };
-
-    console.log("Sending login data:", loginData);
-
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch("http://localhost:5001/api/users/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginData),
+        headers: { 
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: loginEmail.trim().toLowerCase(),
+          password: loginPassword
+        })
+      }).catch(error => {
+        console.error('Network error:', error);
+        throw new Error('Network connection failed. Please check if the server is running.');
       });
 
+      const data = await response.json();
+      console.log("Server response:", data);
+
       if (!response.ok) {
-        // Handle HTTP errors like 400, 401, etc.
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Invalid login credentials.");
+        throw new Error(data.message || "Invalid login credentials.");
       }
 
-      const data = await response.json();
-      localStorage.setItem("user", JSON.stringify(data.user));
-      alert("Login successful!");
-      closeModal();
+      console.log("Login successful data:", data);
+      localStorage.setItem("user", JSON.stringify(data.user)); 
+      setSuccessMessage("Login successful!"); 
+
+      setTimeout(() => {
+        closeModal(); 
+        if (data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      }, 1500);
     } catch (error) {
       console.error("Login error:", error);
-      if (error.message.includes("Failed to fetch")) {
-        setErrorMessage("Could not connect to server. Please try again.");
-      } else {
-        setErrorMessage(error.message);
-      }
+      setErrorMessage(
+        error.message === "Failed to fetch"
+          ? "Could not connect to server. Please try again."
+          : error.message
+      );
     } finally {
       setLoading(false);
     }
@@ -61,6 +77,9 @@ function Login({ closeModal }) {
     <div className="login-modal">
       <button className="close-btn" onClick={closeModal}>✖</button>
       <h2>Login</h2>
+
+      {successMessage && <p className="success-message">{successMessage}</p>}
+
       <form onSubmit={handleSubmitLogin}>
         <div className="input-container">
           <label htmlFor="login-email">Email</label>
@@ -85,7 +104,6 @@ function Login({ closeModal }) {
           />
         </div>
 
-        {/* Show error message */}
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <button type="submit" className="login-btn" disabled={loading}>

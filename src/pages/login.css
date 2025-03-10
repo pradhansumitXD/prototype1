@@ -16,6 +16,19 @@
   margin-bottom: 20px;
 }
 
+.success-message {
+  color: #4CAF50; /* Green text */
+  background-color: #d4edda; /* Light green background */
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #4CAF50; /* Green border to highlight the success message */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow to make it stand out */
+}
+
 .input-container {
   margin-bottom: 20px;
 }

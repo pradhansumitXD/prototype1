@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom'; 
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom'; 
 import './navbar.css';
 import Login from './Login';
 import Signup from './Signup';
@@ -7,6 +7,34 @@ import Signup from './Signup';
 function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null);  // Set to null initially
+  const navigate = useNavigate();
+
+  // Check if the user is logged in when the component mounts
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
+
+  const checkLoginStatus = () => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        if (parsedUser && parsedUser.email) {
+          setIsLoggedIn(true);
+        } else {
+          localStorage.removeItem("user"); // Remove invalid user data
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        localStorage.removeItem("user");
+        setIsLoggedIn(false);
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+  };
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);
@@ -18,8 +46,23 @@ function Navbar() {
     setIsLoginModalOpen(false);
   };
 
-  const closeLoginModal = () => setIsLoginModalOpen(false);
+  const closeLoginModal = () => {
+    setIsLoginModalOpen(false);
+    checkLoginStatus(); // Update login status when modal closes
+  };
+
   const closeSignupModal = () => setIsSignupModalOpen(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    navigate("/"); // Redirect to landing page after logout
+  };
+
+  // Prevent rendering Navbar content until login status is determined
+  if (isLoggedIn === null) {
+    return <div>Loading...</div>;  // You can add a loading spinner or something
+  }
 
   return (
     <nav className="navbar">
@@ -48,9 +91,23 @@ function Navbar() {
           </NavLink>
         </li>
       </ul>
+
       <div className="auth-buttons">
-        <button className="login-btn" onClick={openLoginModal}>Login</button>
-        <button className="signup-btn" onClick={openSignupModal}>Signup</button>
+        {isLoggedIn ? (
+          <>
+            <button className="profile-btn" onClick={() => navigate("/profile")}>
+              Profile
+            </button>
+            <button className="logoutbtn" onClick={handleLogout}>
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="login-btn" onClick={openLoginModal}>Login</button>
+            <button className="signup-btn" onClick={openSignupModal}>Signup</button>
+          </>
+        )}
       </div>
 
       {/* Login Modal */}

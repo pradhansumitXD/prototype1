@@ -1,5 +1,7 @@
 import React from 'react';
-import './AdminDashboard.css'; // Import a CSS file for styling
+import { Link, Routes, Route } from 'react-router-dom';
+import './AdminDashboard.css';
+import ManageUsers from './ManageUsers';
 
 function AdminDashboard() {
   return (
@@ -7,30 +9,23 @@ function AdminDashboard() {
       <div className="sidebar">
         <h2 className="sidebar-title">Admin Panel</h2>
         <ul className="sidebar-nav">
-          <li><a href="/admin">Dashboard</a></li>
-          <li><a href="/admin/users">Manage Users</a></li>
-          <li><a href="/admin/cars">Manage Cars</a></li>
+          <li><Link to="/admin-dashboard">Dashboard</Link></li>
+          <li><Link to="/admin-dashboard/users">Manage Users</Link></li>
+          <li><Link to="/admin-dashboard/cars">Manage Cars</Link></li>
         </ul>
       </div>
 
       <div className="main-content">
-        <h1>Admin Dashboard</h1>
-        <p>Welcome to the admin dashboard. Use the sidebar to navigate.</p>
-
-        <div className="stats">
-          <div className="stat-box">
-            <h3>Total Users</h3>
-            <p>250</p>
-          </div>
-          <div className="stat-box">
-            <h3>Total Cars</h3>
-            <p>100</p>
-          </div>
-          <div className="stat-box">
-            <h3>Pending Approvals</h3>
-            <p>5</p>
-          </div>
-        </div>
+        <Routes>
+          <Route path="/" element={
+            <>
+              <h1>Welcome to the Admin Dashboard</h1>
+              <p>Use the sidebar to manage users, cars, and view platform activities.</p>
+            </>
+          } />
+          <Route path="/users" element={<ManageUsers />} />
+          <Route path="/cars" element={<h2>Cars Management Coming Soon</h2>} />
+        </Routes>
       </div>
     </div>
   );
