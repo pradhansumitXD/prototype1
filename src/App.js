@@ -41,7 +41,7 @@ function App() {
           element={<Navigate to="/admin-dashboard" replace />} 
         />
         <Route 
-          path="/admin-dashboard" 
+          path="/admin-dashboard/*" 
           element={
             <ProtectedRoute 
               element={<AdminDashboard />} 

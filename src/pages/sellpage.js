@@ -13,22 +13,96 @@ function SellPage() {
     engine: "",
     ownership: "",
     price: "",
-    image: "",
+    image: null,
     adTitle: "",
     description: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCarDetails({
-      ...carDetails,
-      [name]: value,
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Get user data from localStorage and parse it properly
+      const userString = localStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      console.log('Current user:', user); // Debug log
+
+      if (!user || !user.id) { // Changed from user._id to user.id
+        throw new Error('Please login to create a listing');
+      }
+
+      const formData = new FormData();
+      // Add user ID to form data using the correct property
+      formData.append('userId', user.id); // Changed from user._id to user.id
+      
+      // Debug log to check formData
+      console.log('Form data user ID:', user.id);
+
+      // Add all form fields to formData
+      Object.keys(carDetails).forEach(key => {
+        if (key === 'image') {
+          if (carDetails.image) {
+            formData.append('image', carDetails.image);
+          }
+        } else {
+          formData.append(key, carDetails[key]);
+        }
+      });
+
+      const response = await fetch('http://localhost:5002/api/listings/create', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create listing');
+      }
+
+      const data = await response.json();
+      console.log('Listing created:', data);
+      
+      // Reset form
+      setCarDetails({
+        brand: "",
+        carType: "",
+        fuelType: "",
+        makeYear: "",
+        transmission: "",
+        kmsDriven: "",
+        engine: "",
+        ownership: "",
+        price: "",
+        image: null,
+        adTitle: "",
+        description: "",
+      });
+      alert('Listing created successfully!');
+    } catch (err) {
+      console.error('Error creating listing:', err);
+      setError(err.message || 'Failed to create listing');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Form Submitted");
+  const handleInputChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "image") {
+      setCarDetails({
+        ...carDetails,
+        image: files[0]
+      });
+    } else {
+      setCarDetails({
+        ...carDetails,
+        [name]: value,
+      });
+    }
   };
 
   return (
@@ -38,7 +112,7 @@ function SellPage() {
         <div className="sell-form-container">
           <h1 className="sell-heading">Sell Your Car</h1>
 
-          <form className="sell-form" onSubmit={handleSubmit}>
+          <form className="sell-form" onSubmit={handleSubmit} encType="multipart/form-data">
             <div className="form-left">
               <div className="form-group">
                 <label>Car Brand</label>

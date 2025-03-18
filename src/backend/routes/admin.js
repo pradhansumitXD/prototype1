@@ -63,4 +63,14 @@ router.delete("/users/:id", isAdmin, async (req, res) => {
   }
 });
 
+// Add this route to handle admin listings
+router.get('/listings', isAdmin, async (req, res) => {
+  try {
+    const listings = await Listing.find().sort({ createdAt: -1 });
+    res.json(listings);
+  } catch (error) {
+    console.error('Fetch listings error:', error);
+    res.status(500).json({ message: "Error fetching listings" });
+  }
+});
 module.exports = router;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './navbar'; 
 import './buypage.css'; 
 import car1 from '../assets/images/car1.jpg';
@@ -10,15 +10,12 @@ import car6 from '../assets/images/car6.jpg';
 import car7 from '../assets/images/car7.jpg';
 import car8 from '../assets/images/car8.jpg';
 
-
 const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
   return (
     <div className="left-column">
       <h1>Discover a Car</h1>
-
       <div className="filter-options">
         <h2>Make Your Own Model</h2>
-
         <div className="filter-item">
           <label>Select Brand</label>
           <select name="make" value={filters.make} onChange={handleFilterChange}>
@@ -35,7 +32,6 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
             <option value="others">Others</option>
           </select>
         </div>
-
         <div className="filter-item">
           <label>Vehicle Type</label>
           <select name="vehicleType" value={filters.vehicleType} onChange={handleFilterChange}>
@@ -44,10 +40,8 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
             <option value="sedan">Sedan</option>
             <option value="suv">SUV</option>
             <option value="pickup">Pickup</option>
-
           </select>
         </div>
-
         <div className="filter-item">
           <label>Search by Budget</label>
           <select name="budget" value={filters.budget} onChange={handleFilterChange}>
@@ -61,10 +55,8 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
             <option value="2000000">60,000,00 - 70,000,00</option>
             <option value="2000000">70,000,00 - 80,000,00</option>
 
-
           </select>
         </div>
-
         <div className="filter-item">
           <label>Search by Transmission</label>
           <select name="transmission" value={filters.transmission} onChange={handleFilterChange}>
@@ -75,7 +67,6 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
             <option value="ev">EV</option>
           </select>
         </div>
-
         <div className="filter-item">
           <label>Search by Fuel Type</label>
           <select name="fuelType" value={filters.fuelType} onChange={handleFilterChange}>
@@ -83,10 +74,8 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
             <option value="petrol">Petrol</option>
             <option value="diesel">Diesel</option>
             <option value="ev">EV</option>
-
           </select>
         </div>
-
         <div className="filter-item">
           <button onClick={handleSearch}>Search</button>
         </div>
@@ -94,7 +83,6 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
     </div>
   );
 };
-
 // Car Listing Component
 const CarListing = ({ car }) => {
   return (
@@ -115,9 +103,26 @@ const CarListing = ({ car }) => {
     </div>
   );
 };
-
 // Main BuyPage Component
-const Buypage = () => {
+function BuyPage() {
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Add this function
+  const fetchSellerDetails = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:5002/api/users/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch seller details');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching seller details:', error);
+      throw error;
+    }
+  };
   const [filters, setFilters] = useState({
     make: '',
     vehicleType: '',
@@ -125,121 +130,147 @@ const Buypage = () => {
     transmission: '',
     fuelType: ''
   });
+  const fetchApprovedListings = async (filterParams = null) => {
+    try {
+      let url = 'http://localhost:5002/api/listings/approved';
+      
+      if (filterParams) {
+        const queryParams = new URLSearchParams();
+        Object.entries(filterParams).forEach(([key, value]) => {
+          if (value) queryParams.append(key, value);
+        });
+        if (queryParams.toString()) {
+          url += `?${queryParams.toString()}`;
+        }
+      }
 
-  const carListings = [
-    {
-      id: 1,
-      photo: car1,
-      name: 'Hyundai Creta - 2016 Model',
-      price: '28,50,000 NPR',
-      kilometers: '55,000 km',
-      transmission: 'Manual',
-      makeYear: '2016',
-      engine: '1.6L',
-      description: 'Great condition, low mileage.',
-    },
-    {
-      id: 2,
-      photo: car2,
-      name: 'KIA Seltos - 2022 Model',
-      price: '40,00,000 NPR',
-      kilometers: '15,000 km',
-      transmission: 'Automatic',
-      makeYear: '2022',
-      engine: '2.0L',
-      description: 'Well-maintained and reliable.',
-    },
-    {
-      id: 3,
-      photo: car3,
-      name: 'Suzuki Fronx - 2018 Model',
-      price: '20,00,000 NPR',
-      kilometers: '40,000 km',
-      transmission: 'Manual',
-      makeYear: '2018',
-      engine: '1.2L',
-      description: 'Excellent condition, low mileage.',
-    },
-    {
-      id: 4,
-      photo: car4,
-      name: 'Tata Nexon EV - 2020 Model',
-      price: '25,00,000 NPR',
-      kilometers: '25,000 km',
-      transmission: 'Automatic',
-      makeYear: '2020',
-      engine: 'EV',
-      description: 'Brand new, no issues.',
-    },
-    {
-      id: 5,
-      photo: car5,
-      name: 'Suzuki Breeza - 2016 Model',
-      price: '23,00,000 NPR',
-      kilometers: '46,000 km',
-      transmission: 'Manual',
-      makeYear: '2016',
-      engine: '1.2L',
-      description: 'Excellent condition, low mileage.',
-    },
-    {
-      id: 6,
-      photo: car6,
-      name: 'KIA Sonet - 2022 Model',
-      price: '33,00,000 NPR',
-      kilometers: '12,000 km',
-      transmission: 'Manual',
-      makeYear: '2022',
-      engine: '1.2L',
-      description: 'Brand new, no issues.',
-    },
-    {
-      id: 7,
-      photo: car7,
-      name: 'Toyota Rav4 - 2020 Model',
-      price: '63,00,000 NPR',
-      kilometers: '20,000 km',
-      transmission: 'Automatic',
-      makeYear: '2020',
-      engine: '2.5L',
-      description: 'Excellent condition, low mileage.',
-    },
-    {
-      id: 8,
-      photo: car8,
-      name: 'Volswagen Polo - 2019 Model',
-      price: '28,00,000',
-      kilometers: '52,000 km',
-      transmission: 'Manual',
-      makeYear: '2019',
-      engine: '1.5L',
-      description: 'Brand new, no issues.',
-    },
-  ];
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Fetched filtered listings:', data);
+      setListings(data);
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+      setError('Failed to load listings. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchApprovedListings();
+  }, []);
+  const CarListing = ({ listing }) => {
+      const [showSellerDetails, setShowSellerDetails] = useState(false);
+      const [sellerInfo, setSellerInfo] = useState(null);
+      const handleViewSellerDetails = async () => {
+        try {
+          if (!listing.userId) {
+            throw new Error('No seller ID available');
+          }
+          console.log('Fetching details for user:', listing.userId);
+          const data = await fetchSellerDetails(listing.userId); // Now this will work
+          setSellerInfo(data);
+          setShowSellerDetails(true);
+        } catch (error) {
+          console.error('Error fetching seller details:', error);
+          alert('Could not fetch seller details. Please try again later.');
+        }
+      };
+  
+      // Extract only the filename from the full path
+      const filename = listing.imageUrl.split('/').pop().split('\\').pop();
+      const imageUrl = `http://localhost:5002/uploads/${filename}`;
+      
+      return (
+        <div className="car-listing">
+          <img 
+            src={imageUrl} 
+            alt={listing.adTitle} 
+            onError={(e) => {
+              console.error('Image load error:', imageUrl);
+              e.target.onerror = null;
+              e.target.src = car1;
+            }}
+          />
+          <div className="car-details">
+            <h3>{listing.adTitle}</h3>
+            <span className="price">Rs. {listing.price}</span>
+            <div className="additional-info">
+              <span>{listing.kmsDriven} km</span>
+              <span>{listing.transmission}</span>
+              <span>{listing.makeYear}</span>
+              <span>{listing.engine}</span>
+            </div>
+            <p>{listing.description}</p>
+            <button onClick={handleViewSellerDetails}>View Seller Details</button>
+          </div>
+  
+          {showSellerDetails && sellerInfo && (
+            <div className="seller-modal">
+              <div className="seller-modal-content">
+                <button className="close-btn" onClick={() => setShowSellerDetails(false)}>×</button>
+                <h3>Seller Information</h3>
+                <p><strong>Name:</strong> {sellerInfo.username}</p>
+                <p><strong>Email:</strong> {sellerInfo.email}</p>
+                <p><strong>Phone:</strong> {sellerInfo.phone}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
   };
-
   const handleSearch = () => {
-    console.log('Searching with filters:', filters);
-  };
+    console.log('Applying filters:', filters);
+    const activeFilters = {};
+    
+    // Only include filters with values
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        activeFilters[key] = value;
+      }
+    });
 
+    // If there are active filters, fetch filtered listings
+    if (Object.keys(activeFilters).length > 0) {
+      fetchApprovedListings(activeFilters);
+    } else {
+      // If no filters, fetch all listings
+      fetchApprovedListings();
+    }
+  };
   return (
     <>
-      <Navbar /> 
+      <Navbar />
       <div className="buy-section">
-        <FilterSection filters={filters} handleFilterChange={handleFilterChange} handleSearch={handleSearch} />
-
+        <FilterSection 
+          filters={filters} 
+          handleFilterChange={handleFilterChange} 
+          handleSearch={handleSearch} 
+        />
         <div className="right-column">
-          {carListings.map((car) => (
-            <CarListing key={car.id} car={car} />
-          ))}
+          {listings.length > 0 ? (
+            listings.map((listing) => (
+              <CarListing key={listing._id} listing={listing} />
+            ))
+          ) : (
+            <p>No approved listings available</p>
+          )}
         </div>
       </div>
     </>
   );
-};
-
-export default Buypage;
+}
+export default BuyPage;
