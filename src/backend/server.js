@@ -10,13 +10,15 @@ const path = require('path');
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+// CORS configuration
+const corsOptions = {
+  origin: 'http://localhost:3000',
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'user']
-}));
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'user']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

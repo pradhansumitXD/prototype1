@@ -115,23 +115,26 @@ router.patch('/:id/status', async (req, res) => {
 // Move the 'all' route to the top, before any parameterized routes
 router.get('/all', async (req, res) => {
   try {
-    const user = JSON.parse(req.headers.user || '{}');
-    console.log('User from headers:', user); // Debug log
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied. Admin only.' });
-    }
-    const listings = await Listing.find().sort({ createdAt: -1 });
-    console.log('Found listings:', listings); // Debug log
+    const user = req.headers.user ? JSON.parse(req.headers.user) : null;
     
-    // Transform the listings to ensure proper JSON response
+    const listings = await Listing.find()
+      .select('adTitle brand model price status imageUrl carType transmission fuelType') // Changed description to adTitle
+      .sort({ createdAt: -1 });
+    
     const sanitizedListings = listings.map(listing => ({
       _id: listing._id,
-      adTitle: listing.adTitle,
+      title: listing.adTitle, // Changed to use adTitle
+      brand: listing.brand,
+      model: listing.model,
       price: listing.price,
       status: listing.status,
       imageUrl: listing.imageUrl,
-      createdAt: listing.createdAt
+      carType: listing.carType,
+      transmission: listing.transmission,
+      fuelType: listing.fuelType
     }));
+
+    console.log('Sending listings:', sanitizedListings);
     res.json(sanitizedListings);
   } catch (error) {
     console.error('Error in /all route:', error);

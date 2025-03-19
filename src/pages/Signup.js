@@ -57,20 +57,40 @@ function Signup({ closeModal }) {
         password: '[HIDDEN]'
       });
     
-      // Updated fetch call with error handling
-      const response = await fetch('http://localhost:5001/api/users/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
-
-      const data = await response.json();
-      console.log('Registration response:', data);
+      // Updated fetch call with better error handling
+      // Updated fetch call with CORS and detailed error handling
+            const response = await fetch('http://localhost:5002/api/users/register', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+              },
+              credentials: 'include',
+              body: JSON.stringify(userData)
+            });
+      
+      let data;
+      try {
+        data = await response.json();
+        console.log('Registration response:', data);
+      } catch (parseError) {
+        console.error('Parse error:', parseError);
+        throw new Error('Unable to process server response');
+      }
     
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        const errorMessage = data.error || data.message || 'Unknown server error';
+        console.error('Server response:', response.status, errorMessage);
+        throw new Error(errorMessage);
+      }
+    
+      if (response.status === 500) {
+        throw new Error('Server error. Please try again later.');
+      } else if (response.status === 409) {
+        throw new Error('Email already exists. Please use a different email.');
+      } else {
+        throw new Error(data.message || 'Registration failed. Please check your details.');
       }
     
       // Store user data in localStorage

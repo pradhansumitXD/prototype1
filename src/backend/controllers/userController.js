@@ -1,6 +1,11 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 
+// Remove these lines
+// const cors = require('cors');
+// const corsOptions = {...}
+// app.use(cors(corsOptions));
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -104,12 +109,34 @@ const registerUser = async (req, res) => {
   try {
     const { username, email, phone, password, role } = req.body;
 
-    // Log the incoming request
-    console.log('Received registration request:', { username, email, phone, role });
+    // More detailed request logging
+    console.log('Received registration request:', {
+      username: username || 'missing',
+      email: email || 'missing',
+      phone: phone || 'missing',
+      role: role || 'missing',
+      hasPassword: !!password
+    });
 
+    // Detailed validation logging
     if (!username || !email || !phone || !password) {
-      console.log('Validation failed: Missing required fields');
-      return res.status(400).json({ message: "All fields are required." });
+      const missingFields = [];
+      if (!username) missingFields.push('username');
+      if (!email) missingFields.push('email');
+      if (!phone) missingFields.push('phone');
+      if (!password) missingFields.push('password');
+      
+      console.log('Validation failed: Missing fields:', missingFields);
+      return res.status(400).json({ 
+        message: "All fields are required.",
+        missingFields 
+      });
+    }
+
+    // Database connection check
+    if (!User.db.readyState) {
+      console.error('Database connection not ready');
+      return res.status(500).json({ message: "Database connection error" });
     }
 
     // Log before database query
@@ -120,14 +147,12 @@ const registerUser = async (req, res) => {
 
     if (existingUser) {
       console.log('User already exists with email:', email);
-      return res
-        .status(400)
-        .json({ message: "Email already in use. Please log in." });
+      return res.status(409).json({ message: "Email already in use. Please log in." });
     }
 
     // Log password hashing
     console.log('Hashing password...');
-    const hashedPassword = await bcrypt.hash(password.trim(), 10);
+    const hashedPassword = await bcrypt.hash(password.trim(), 12);
 
     // Log user creation
     console.log('Creating new user object...');
@@ -139,9 +164,13 @@ const registerUser = async (req, res) => {
       role: role?.trim() || "user",
     });
 
-    console.log('Attempting to save user to database...');
+    console.log('Attempting to save user...');
     const savedUser = await newUser.save();
-    console.log('User saved successfully:', savedUser._id);
+    console.log('User saved successfully:', {
+      id: savedUser._id,
+      email: savedUser.email,
+      role: savedUser.role
+    });
 
     res.status(201).json({ 
       message: "User registered successfully!",
@@ -152,19 +181,28 @@ const registerUser = async (req, res) => {
         role: savedUser.role
       }
     });
+
   } catch (error) {
-    // Enhanced error logging
-    console.error("Signup error details:", {
-      error: error.message,
+    console.error("Detailed signup error:", {
+      message: error.message,
+      name: error.name,
+      code: error.code,
       stack: error.stack,
-      name: error.name
+      details: error.errors // Mongoose validation errors
     });
 
-    // Check for specific MongoDB errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Validation error",
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+
     if (error.name === 'MongoServerError') {
       if (error.code === 11000) {
-        return res.status(400).json({ message: "Email already exists." });
+        return res.status(409).json({ message: "Email already exists" });
       }
+      return res.status(500).json({ message: "Database error" });
     }
 
     res.status(500).json({ 
@@ -174,7 +212,46 @@ const registerUser = async (req, res) => {
   }
 };
 
+const updateUserByAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { username, role } = req.body;
+
+    // Validate admin user from request
+    const adminUser = JSON.parse(req.headers.user);
+    if (!adminUser || adminUser.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized as admin' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (username) user.username = username.trim();
+    if (role && ['user', 'admin'].includes(role)) user.role = role;
+
+    await user.save();
+
+    res.json({
+      message: 'User updated successfully',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Admin update user error:', error);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
+};
+
 module.exports = {
   loginUser,
-  registerUser
+  registerUser,
+  getProfile,
+  updateProfile,
+  updateUserByAdmin  // Add this to exports
 };

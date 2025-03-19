@@ -43,3 +43,15 @@
   padding: 20px;
   text-align: center;
 }
+
+.listing-image {
+  width: 100px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.listings-table td {
+  vertical-align: middle;
+  padding: 10px;
+}

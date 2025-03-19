@@ -10,18 +10,15 @@ function ManageListings() {
     const fetchListings = async () => {
       try {
         const user = JSON.parse(localStorage.getItem('user'));
-        console.log('Fetching listings with user:', user);
-
-        // Updated fetch request to use the correct endpoint
         const response = await fetch('http://localhost:5002/api/listings/all', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'user': JSON.stringify(user)
+            'Authorization': `Bearer ${user?.id || ''}`,
+            'Accept': 'application/json',
+            'user': JSON.stringify({ id: user?.id, role: user?.role })
           }
         });
-
-        console.log('Response:', response); // Debug log
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -29,7 +26,7 @@ function ManageListings() {
         }
 
         const data = await response.json();
-        console.log('Fetched listings:', data);
+        console.log('Received listings:', data); // Debug log to see what data we're getting
         setListings(data || []);
       } catch (err) {
         console.error('Error fetching listings:', err);
@@ -49,13 +46,16 @@ function ManageListings() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'user': JSON.stringify(user)
+          'Authorization': `Bearer ${user?.id || ''}`,
+          'Accept': 'application/json',
+          'user': JSON.stringify({ id: user?.id, role: user?.role }) // Add user role information
         },
         body: JSON.stringify({ status: newStatus })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update listing status');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update listing status');
       }
 
       // Update the listings state after successful status update
@@ -77,36 +77,51 @@ function ManageListings() {
       <table className="listings-table">
         <thead>
           <tr>
+            <th>Image</th>
             <th>Title</th>
+            <th>Brand</th>
+            <th>Model</th>
             <th>Price</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {listings.map(listing => (
-            <tr key={listing._id}>
-              <td>{listing.adTitle}</td>
-              <td>${listing.price}</td>
-              <td>{listing.status}</td>
-              <td>
-                <button 
-                  onClick={() => handleStatusUpdate(listing._id, 'approved')}
-                  className="approve-btn"
-                  disabled={listing.status === 'approved'}
-                >
-                  Approve
-                </button>
-                <button 
-                  onClick={() => handleStatusUpdate(listing._id, 'rejected')}
-                  className="reject-btn"
-                  disabled={listing.status === 'rejected'}
-                >
-                  Reject
-                </button>
-              </td>
-            </tr>
-          ))}
+          {listings.map(listing => {
+            console.log('Rendering listing:', listing);
+            return (
+              <tr key={listing._id}>
+                <td>
+                  <img 
+                    src={`http://localhost:5002/uploads/${listing.imageUrl}`}
+                    alt={listing.title || listing.adTitle}
+                    className="listing-image"
+                  />
+                </td>
+                <td>{listing.title || listing.adTitle || 'N/A'}</td>
+                <td>{listing.brand || 'N/A'}</td>
+                <td>{listing.model || 'N/A'}</td>
+                <td>₹{listing.price?.toLocaleString('en-IN') || 'N/A'}</td>
+                <td>{listing.status}</td>
+                <td>
+                  <button 
+                    onClick={() => handleStatusUpdate(listing._id, 'approved')}
+                    className="approve-btn"
+                    disabled={listing.status === 'approved'}
+                  >
+                    Approve
+                  </button>
+                  <button 
+                    onClick={() => handleStatusUpdate(listing._id, 'rejected')}
+                    className="reject-btn"
+                    disabled={listing.status === 'rejected'}
+                  >
+                    Reject
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
