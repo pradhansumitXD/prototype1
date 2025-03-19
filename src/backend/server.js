@@ -1,82 +1,67 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const mongoose = require('mongoose');
+const path = require('path');  // Add this import
+const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/admin');
 const listingsRouter = require('./routes/listings');
-const User = require('./models/user');
-const path = require('path');
 
 const app = express();
 
-// CORS configuration
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'user']
-};
-
-app.use(cors(corsOptions));
+// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!require('fs').existsSync(uploadsDir)) {
+    require('fs').mkdirSync(uploadsDir, { recursive: true });
+}
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
-
-// Specific user route for seller details
-app.get('/api/users/:id', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id)
-      .select('username email phone')
-      .lean();
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+// Serve static files from the uploads directory with proper MIME types
+app.use('/uploads', express.static(uploadsDir, {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+        } else if (path.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+        }
     }
-    res.json(user);
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ message: 'Error fetching user details' });
-  }
-});
+}));
 
-// Routes
-app.use('/api/listings', listingsRouter);
+// Mount routes
+app.use('/api/auth', authRoutes);  // Mount auth routes
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/listings', listingsRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({
-    message: "Internal server error",
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// MongoDB connection
+// Connect to MongoDB with error handling
 mongoose.connect(process.env.MONGODB_URL, {
-  dbName: 'usermanagement'
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
 .then(() => {
   console.log('Connected to MongoDB');
-  console.log('Database:', mongoose.connection.name);
-  console.log('Host:', mongoose.connection.host);
 })
 .catch(err => {
   console.error('MongoDB connection error:', err);
-  process.exit(1);
+  process.exit(1);  // Exit if cannot connect to database
+});
+
+// Add this to handle MongoDB connection errors
+mongoose.connection.on('error', err => {
+  console.error('MongoDB connection error:', err);
 });
 
 const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

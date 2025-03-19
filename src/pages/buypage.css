@@ -219,3 +219,32 @@
 .seller-modal-content p {
   margin: 10px 0;
 }
+
+.ad-title {
+  font-size: 1.4em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.car-details {
+  padding: 15px;
+}
+
+.additional-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.additional-info span {
+  background: #f5f5f5;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.description {
+  margin: 15px 0;
+  line-height: 1.5;
+}

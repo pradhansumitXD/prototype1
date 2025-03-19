@@ -16,6 +16,7 @@ function SellPage() {
     image: null,
     adTitle: "",
     description: "",
+    kmsDriven: "", // Add this line
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,15 +35,20 @@ function SellPage() {
       }
 
       const formData = new FormData();
-      formData.append('seller', user.id);
+      formData.append('userId', user.id);  // Changed from 'seller' to 'userId'
       
-      Object.keys(carDetails).forEach(key => {
+      // Rename year to makeYear before sending
+      const { year, ...otherDetails } = carDetails;
+      formData.append('makeYear', year);  // Changed from 'year' to 'makeYear'
+      
+      // Append all other details
+      Object.entries(otherDetails).forEach(([key, value]) => {
         if (key === 'image') {
-          if (carDetails.image) {
-            formData.append('image', carDetails.image);
+          if (value) {
+            formData.append('image', value);
           }
         } else {
-          formData.append(key, carDetails[key]);
+          formData.append(key, value);
         }
       });
 
@@ -193,21 +199,51 @@ function SellPage() {
               </div>
 
               <div className="form-group">
+                <label>Kilometers Driven</label>
+                <input 
+                  type="number" 
+                  name="kmsDriven" 
+                  value={carDetails.kmsDriven} 
+                  onChange={handleInputChange}
+                  placeholder="Enter total kilometers driven"
+                  required 
+                />
+              </div>
+
+              <div className="form-group">
                 <label>Car Image</label>
                 <input type="file" name="image" onChange={handleInputChange} required />
               </div>
 
-              <div className="form-group">
-                <label>Ad Title</label>
-                <input 
-                  type="text" 
-                  name="adTitle" 
-                  value={carDetails.adTitle} 
-                  onChange={handleInputChange}
-                  placeholder="Enter a title for your ad"
-                  required 
-                />
-              </div>
+              {/* Move Ad Title field to the top of the form */}
+                         <div className="form-group">
+                           <label>Ad Title</label>
+                           <input 
+                             type="text" 
+                             name="adTitle" 
+                             value={carDetails.adTitle} 
+                             onChange={handleInputChange}
+                             placeholder="Enter a title for your ad (e.g., '2020 Honda Civic - Excellent Condition')"
+                             required 
+                           />
+                         </div>
+
+                         <div className="form-group">
+                           <label>Car Brand</label>
+                           <select name="brand" value={carDetails.brand} onChange={handleInputChange} required>
+                             <option value="">Select Brand</option>
+                             <option value="Hyundai">Hyundai</option>
+                             <option value="Suzuki">Suzuki</option>
+                             <option value="Tata">Tata</option>
+                             <option value="KIA">KIA</option>
+                             <option value="Ford">Ford</option>
+                             <option value="Mahindra">Mahindra</option>
+                             <option value="Toyota">Toyota</option>
+                             <option value="Nissan">Nissan</option>
+                             <option value="Volkswagen">Volkswagen</option>
+                             <option value="Others">Others</option>
+                           </select>
+                         </div>
 
               <div className="form-group">
                 <label>Description</label>

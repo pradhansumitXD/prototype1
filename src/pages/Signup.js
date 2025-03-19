@@ -44,56 +44,28 @@ function Signup({ closeModal }) {
         return;
       }
     
-      const userData = {
-        username: signupName.trim(),
-        email: signupEmail.trim().toLowerCase(),
-        phone: signupPhone.trim(),
-        password: signupPassword,
-        role: role
-      };
-    
-      console.log('Attempting to register with:', {
-        ...userData,
-        password: '[HIDDEN]'
+      // Updated fetch call with the correct endpoint
+      const response = await fetch('http://localhost:5002/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: signupName.trim(),
+          email: signupEmail.trim().toLowerCase(),
+          phone: signupPhone.trim(),
+          password: signupPassword,
+          role: role
+        })
       });
-    
-      // Updated fetch call with better error handling
-      // Updated fetch call with CORS and detailed error handling
-            const response = await fetch('http://localhost:5002/api/users/register', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              },
-              credentials: 'include',
-              body: JSON.stringify(userData)
-            });
-      
-      let data;
-      try {
-        data = await response.json();
-        console.log('Registration response:', data);
-      } catch (parseError) {
-        console.error('Parse error:', parseError);
-        throw new Error('Unable to process server response');
-      }
-    
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorMessage = data.error || data.message || 'Unknown server error';
-        console.error('Server response:', response.status, errorMessage);
-        throw new Error(errorMessage);
+        throw new Error(data.message || 'Registration failed');
       }
-    
-      if (response.status === 500) {
-        throw new Error('Server error. Please try again later.');
-      } else if (response.status === 409) {
-        throw new Error('Email already exists. Please use a different email.');
-      } else {
-        throw new Error(data.message || 'Registration failed. Please check your details.');
-      }
-    
-      // Store user data in localStorage
+
+      // Store user data in localStorage (single setItem)
       localStorage.setItem('user', JSON.stringify(data.user));
       
       setSuccessMessage('Registration successful! Redirecting...');
@@ -117,11 +89,7 @@ function Signup({ closeModal }) {
     
     } catch (error) {
       console.error('Registration error:', error);
-      setErrorMessage(
-        error.message.includes('Network connection failed')
-          ? error.message
-          : 'Registration failed. Please try again.'
-      );
+      setErrorMessage(error.message || 'Registration failed. Please try again.');
     }
   };
   

@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const User = require("../models/user"); // Adjust path if needed
+const User = require("../models/user");
 
 const router = express.Router();
 
@@ -37,6 +37,47 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
+    res.status(500).json({ message: "Server error. Please try again later." });
+  }
+});
+
+// Registration Route
+router.post("/register", async (req, res) => {
+  try {
+    const { username, email, phone, password, role } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Create new user
+    const user = new User({
+      username,
+      email: email.toLowerCase(),
+      phone,
+      password: hashedPassword,
+      role: role || 'user'
+    });
+
+    const savedUser = await user.save();
+
+    res.status(201).json({
+      message: "Registration successful!",
+      user: {
+        id: savedUser._id,
+        username: savedUser.username,
+        email: savedUser.email,
+        role: savedUser.role
+      }
+    });
+
+  } catch (error) {
+    console.error("Registration error:", error);
     res.status(500).json({ message: "Server error. Please try again later." });
   }
 });
