@@ -50,18 +50,18 @@ function ListingsPage() {
                 }}
               />
               <div className="listing-details">
-                <h3>{listing.adTitle}</h3>
-                <p className="price">Rs. {listing.price}</p>
+                <h3>{listing.adTitle.split('-')[0].trim()}</h3>
+                <p className="price">Rs. {Number(listing.price).toLocaleString('en-IN')}</p>
                 <div className="car-info">
-                  <p>Brand: {listing.brand}</p>
-                  <p>Model: {listing.model}</p>
-                  <p>Year: {listing.year}</p>
-                  <p>Transmission: {listing.transmission}</p>
-                  <p>Fuel Type: {listing.fuelType}</p>
-                  <p>Engine: {listing.engine}</p>
-                  <p>Kilometers: {listing.kmsDriven} KM</p>
+                  <p>Brand: {listing.brand || 'N/A'}</p>
+                  <p>Type: {listing.carType || 'N/A'}</p>
+                  <p>Year: {listing.makeYear || 'N/A'}</p>
+                  <p>Transmission: {listing.transmission || 'N/A'}</p>
+                  <p>Fuel Type: {listing.fuelType || 'N/A'}</p>
+                  <p>Engine: {listing.engine || 'N/A'}</p>
+                  <p>Kilometers: {listing.kmsDriven || 'N/A'} KM</p>
                 </div>
-                <p className="description">{listing.description}</p>
+                <p className="description">{listing.description || 'N/A'}</p>
               </div>
             </div>
           );

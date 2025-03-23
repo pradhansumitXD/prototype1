@@ -1,10 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 
-// Remove these lines
-// const cors = require('cors');
-// const corsOptions = {...}
-// app.use(cors(corsOptions));
 
 const loginUser = async (req, res) => {
   try {
@@ -109,7 +105,6 @@ const registerUser = async (req, res) => {
   try {
     const { username, email, phone, password, role } = req.body;
 
-    // More detailed request logging
     console.log('Received registration request:', {
       username: username || 'missing',
       email: email || 'missing',
@@ -118,7 +113,6 @@ const registerUser = async (req, res) => {
       hasPassword: !!password
     });
 
-    // Detailed validation logging
     if (!username || !email || !phone || !password) {
       const missingFields = [];
       if (!username) missingFields.push('username');
@@ -139,7 +133,6 @@ const registerUser = async (req, res) => {
       return res.status(500).json({ message: "Database connection error" });
     }
 
-    // Log before database query
     console.log('Checking for existing user with email:', email);
     const existingUser = await User.findOne({
       email: email.trim().toLowerCase(),
@@ -253,5 +246,5 @@ module.exports = {
   registerUser,
   getProfile,
   updateProfile,
-  updateUserByAdmin  // Add this to exports
+  updateUserByAdmin  
 };

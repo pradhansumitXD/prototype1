@@ -1,18 +1,15 @@
-/* Basic Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
   }
   
-  /* Global Styles */
   body {
     font-family: 'Arial', sans-serif;
     background-color: #f4f4f4;
     color: #333;
   }
   
-  /* Navbar Styles */
   .navbar {
     display: flex;
     justify-content: space-between;
@@ -59,7 +56,6 @@
     background-color: #e07b00;
   }
   
-  /* Hero Section Styles */
   .hero {
     text-align: center;
     padding: 80px 20px;
@@ -92,7 +88,6 @@
     background-color: #e07b00;
   }
   
-  /* General Styles for the App */
   .App {
     font-family: 'Arial', sans-serif;
   }

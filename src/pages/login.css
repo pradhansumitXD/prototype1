@@ -1,6 +1,4 @@
-/* login.css */
 
-/* Modal Container */
 .login-modal {
   background-color: #fff;
   padding: 30px;
@@ -17,16 +15,29 @@
 }
 
 .success-message {
-  color: #4CAF50; /* Green text */
-  background-color: #d4edda; /* Light green background */
+  color:  green;
+  background-color: #d4edda; 
   padding: 15px;
   border-radius: 4px;
   margin-bottom: 15px;
   text-align: center;
   font-size: 16px;
   font-weight: bold;
-  border: 1px solid #4CAF50; /* Green border to highlight the success message */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow to make it stand out */
+  border: 1px solid #4CAF50; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #dc3545;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .input-container {

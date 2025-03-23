@@ -9,12 +9,12 @@
 
 
   .left-column {
-    width: 45%; /* Increased from 30% to 35% */
+    width: 45%; 
     padding: 15px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-left: -140px; /* Moves it slightly to the right */
+    margin-left: -140px; 
 }
 
 .left-column h1 {
@@ -91,7 +91,7 @@
 }
 
 .car-listing {
-    width: calc(50% - 10px); /* Adjust for gap spacing */
+    width: calc(50% - 10px); 
     background-color: #fff;
     padding: 15px;
     border-radius: 8px;

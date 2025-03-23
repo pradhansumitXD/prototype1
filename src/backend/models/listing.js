@@ -7,6 +7,7 @@ const listingSchema = new mongoose.Schema({
     required: true
   },
   brand: { type: String, required: true },
+  model: { type: String, required: true }, 
   carType: { type: String, required: true },
   fuelType: { type: String, required: true },
   makeYear: { type: String, required: true },

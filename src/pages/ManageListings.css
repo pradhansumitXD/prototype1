@@ -10,48 +10,154 @@
 
 .listings-table th,
 .listings-table td {
-  padding: 12px;
+  padding: 16px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
 }
 
 .listings-table th {
-  background-color: #f4f4f4;
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.action-buttons {
+  min-width: 300px;
+  padding: 8px;
+}
+
+.button-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.status-buttons,
+.edit-delete-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
 
 .approve-btn,
-.reject-btn {
-  padding: 5px 10px;
-  margin: 0 5px;
+.reject-btn,
+.delete-btn {
+  padding: 6px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 20px;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .approve-btn {
-  background-color: #28a745;
+  background-color: #4ade80;
   color: white;
 }
 
 .reject-btn {
-  background-color: #dc3545;
+  background-color: #ef4444;
   color: white;
 }
 
-.error-message {
-  color: red;
-  padding: 20px;
-  text-align: center;
+.delete-btn {
+  margin-left: 8px;
+  background-color: transparent;
+  color: #94a3b8;
+  border: 1px solid #94a3b8;
+  box-shadow: none;
+  padding: 0;
+  min-width: 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn i {
+  font-size: 16px;
+}
+
+.delete-btn:hover {
+  background-color: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.edit-delete-buttons {
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+.edit-delete-buttons:hover {
+  opacity: 1;
+}
+
+.approve-btn:hover:not(:disabled) {
+  background-color: #22c55e;
+}
+
+.reject-btn:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.delete-btn:hover {
+  background-color: #64748b;
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .listing-image {
-  width: 100px;
-  height: 70px;
+  width: 120px;
+  height: 80px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.listings-table td {
-  vertical-align: middle;
+.listings-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.edit-form {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.edit-form input {
+  width: 100%;
   padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.edit-form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.edit-form-buttons button {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  min-width: 100px;
 }

@@ -5,7 +5,7 @@ function Profile() {
   const [user, setUser] = useState({
     username: '',
     email: '',
-    password: '', // Allowing the user to change the password
+    password: '', 
     mobile: '',   // Allowing the user to change the mobile number
   });
 
@@ -17,7 +17,7 @@ function Profile() {
         username: storedUser.username,
         email: storedUser.email,
         password: storedUser.password,
-        mobile: storedUser.mobile || '', // Add mobile number from localStorage if available
+        mobile: storedUser.mobile || '', 
       });
     }
   }, []);
@@ -83,7 +83,7 @@ function Profile() {
             value={user.mobile}
             onChange={handleChange}
             required
-            pattern="\d{10}"  // Mobile number should be 10 digits (adjust pattern if needed)
+            pattern="\d{10}"  // Mobile number should be 10 digits 
             title="Please enter a valid 10-digit mobile number"
           />
         </div>

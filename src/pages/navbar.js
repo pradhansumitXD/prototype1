@@ -7,10 +7,9 @@ import Signup from './Signup';
 function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(null);  // Set to null initially
+  const [isLoggedIn, setIsLoggedIn] = useState(null);  
   const navigate = useNavigate();
 
-  // Check if the user is logged in when the component mounts
   useEffect(() => {
     checkLoginStatus();
   }, []);
@@ -23,7 +22,7 @@ function Navbar() {
         if (parsedUser && parsedUser.email) {
           setIsLoggedIn(true);
         } else {
-          localStorage.removeItem("user"); // Remove invalid user data
+          localStorage.removeItem("user"); 
           setIsLoggedIn(false);
         }
       } catch (error) {
@@ -48,7 +47,7 @@ function Navbar() {
 
   const closeLoginModal = () => {
     setIsLoginModalOpen(false);
-    checkLoginStatus(); // Update login status when modal closes
+    checkLoginStatus(); 
   };
 
   const closeSignupModal = () => setIsSignupModalOpen(false);
@@ -56,12 +55,11 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     setIsLoggedIn(false);
-    navigate("/"); // Redirect to landing page after logout
+    navigate("/"); 
   };
 
-  // Prevent rendering Navbar content until login status is determined
   if (isLoggedIn === null) {
-    return <div>Loading...</div>;  // You can add a loading spinner or something
+    return <div>Loading...</div>;  
   }
 
   return (
@@ -110,14 +108,12 @@ function Navbar() {
         )}
       </div>
 
-      {/* Login Modal */}
       {isLoginModalOpen && (
         <div className="login-modal-container">
           <Login closeModal={closeLoginModal} />
         </div>
       )}
 
-      {/* Signup Modal */}
       {isSignupModalOpen && (
         <div className="signup-modal-container">
           <Signup closeModal={closeSignupModal} />

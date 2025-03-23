@@ -11,7 +11,6 @@ function Login({ closeModal }) {
 
   const navigate = useNavigate();  
 
-  // Update API URL to match the backend route
   const API_URL = "http://localhost:5002/api/users/login";
 
   const handleSubmitLogin = async (e) => {
@@ -20,7 +19,7 @@ function Login({ closeModal }) {
     setErrorMessage("");
     
     try {
-      const response = await fetch(API_URL, {  // Use the API_URL constant
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,32 +31,28 @@ function Login({ closeModal }) {
       });
 
       const data = await response.json();
-      console.log('Login response data:', data); // Debug the entire response
 
       if (!response.ok) {
         throw new Error(data.message || "Invalid login credentials.");
       }
 
-      // Explicitly check the user role
-      const userRole = data.user?.role;
-      console.log('User role:', userRole); // Debug the role
-
+      localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("userRole", data.user.role);
       localStorage.setItem("user", JSON.stringify(data.user));
       setSuccessMessage("Login successful!");
 
-      // Clear form and handle redirection
+      // Add delay before redirect
+      setTimeout(() => {
+        if (data.user.role === "admin") {
+          window.location.href = "/admin-dashboard";
+        } else {
+          window.location.href = "/";
+        }
+      }, 1500); // making 1.5s delay to display success message
+
       setLoginEmail("");
       setLoginPassword("");
-
-      if (userRole === "admin") {
-        console.log("Admin user detected");
-        window.location.href = "/admin-dashboard";
-      } else {
-        console.log("Regular user detected");
-        window.location.href = "/";
-      }
-
-      if (closeModal) closeModal();
+      
     } catch (error) {
       console.error('Login error:', error);
       setErrorMessage(error.message || 'Login failed. Please try again.');

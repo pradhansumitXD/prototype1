@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
-import './signup.css'; // Import the CSS file
+import './signup.css'; 
 
 function Signup({ closeModal }) {
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [role, setRole] = useState('user'); // Default role is 'user'
-  const [errorMessage, setErrorMessage] = useState(''); // For error handling
-  const [successMessage, setSuccessMessage] = useState(''); // For success message
+  const [role, setRole] = useState('user'); 
+  const [errorMessage, setErrorMessage] = useState(''); 
+  const [successMessage, setSuccessMessage] = useState(''); 
 
-  // Validate email format
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
 
-  // Validate phone format (basic check)
   const validatePhone = (phone) => {
     const regex = /^\d{10}$/; // Ensures a 10-digit phone number
     return regex.test(phone);
@@ -65,12 +63,11 @@ function Signup({ closeModal }) {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Store user data in localStorage (single setItem)
+      
       localStorage.setItem('user', JSON.stringify(data.user));
       
       setSuccessMessage('Registration successful! Redirecting...');
       
-      // Clear form and redirect
       setTimeout(() => {
         setSignupName('');
         setSignupEmail('');
@@ -157,10 +154,8 @@ function Signup({ closeModal }) {
           </select>
         </div>
 
-        {/* Show success message */}
         {successMessage && <p className="success-message">{successMessage}</p>}
 
-        {/* Show error message */}
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <button type="submit" className="signup-btn">Signup</button>

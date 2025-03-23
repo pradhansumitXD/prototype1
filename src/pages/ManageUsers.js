@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './ManageUsers.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash, faSave, faTimes, faUsers } from '@fortawesome/free-solid-svg-icons';
 
 function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -105,14 +107,15 @@ function ManageUsers() {
 
   return (
     <div className="manage-users">
-      <h2>Manage Users</h2>
+      <h2><FontAwesomeIcon icon={faUsers} /> Manage Users</h2>
+      {error && <div className="error-message">{error}</div>}
       <table className="users-table">
         <thead>
           <tr>
             <th>Username</th>
             <th>Email</th>
             <th>Role</th>
-            <th>Actions</th>
+            <th>ACTIONS</th>
           </tr>
         </thead>
         <tbody>
@@ -147,34 +150,29 @@ function ManageUsers() {
               <td>
                 {editingUser?._id === user._id ? (
                   <>
-                    <button 
-                      className="save-btn"
-                      onClick={handleUpdate}
-                    >
-                      Save
+                    <button className="save-btn" onClick={handleUpdate}>
+                      <FontAwesomeIcon icon={faSave} /> Save
                     </button>
-                    <button 
-                      className="cancel-btn"
-                      onClick={() => setEditingUser(null)}
-                    >
-                      Cancel
+                    <button className="cancel-btn" onClick={() => setEditingUser(null)}>
+                      <FontAwesomeIcon icon={faTimes} /> Cancel
                     </button>
                   </>
                 ) : (
-                  <>
+                  <div className="action-buttons">
                     <button 
-                      className="edit-btn"
+                      className="edit-btn" 
                       onClick={() => handleEdit(user)}
                     >
-                      Edit
+                      <FontAwesomeIcon icon={faEdit} /> Edit
                     </button>
                     <button 
                       className="delete-btn"
                       onClick={() => handleDelete(user._id)}
+                      disabled={user.role === 'admin'}
                     >
-                      Delete
+                      <FontAwesomeIcon icon={faTrash} />
                     </button>
-                  </>
+                  </div>
                 )}
               </td>
             </tr>

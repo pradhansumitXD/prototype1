@@ -2,15 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './navbar'; 
 import './buypage.css'; 
 import car1 from '../assets/images/car1.jpg';
-import car2 from '../assets/images/car2.jpg';
-import car3 from '../assets/images/car3.jpg';
-import car4 from '../assets/images/car4.jpg';
-import car5 from '../assets/images/car5.jpg';
-import car6 from '../assets/images/car6.jpg';
-import car7 from '../assets/images/car7.jpg';
-import car8 from '../assets/images/car8.jpg';
 
-// Update FilterSection component
 const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
   return (
     <div className="left-column">
@@ -20,7 +12,6 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
         <div className="filter-item">
           <label>Select Brand</label>
           <select name="brand" value={filters.brand} onChange={handleFilterChange}>
-            {/* Changed 'make' to 'brand' to match backend */}
             <option value="">Select</option>
             <option value="Hyundai">Hyundai</option>
             <option value="Suzuki">Suzuki</option>
@@ -38,7 +29,6 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
         <div className="filter-item">
           <label>Vehicle Type</label>
           <select name="carType" value={filters.carType} onChange={handleFilterChange}>
-            {/* Changed 'vehicleType' to 'carType' */}
             <option value="">Select</option>
             <option value="Hatchback">Hatchback</option>
             <option value="Sedan">Sedan</option>
@@ -46,31 +36,30 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
             <option value="Pickup">Pickup</option>
           </select>
         </div>
+
         <div className="filter-item">
           <label>Search by Budget</label>
           <select name="budget" value={filters.budget} onChange={handleFilterChange}>
             <option value="">Select</option>
-            <option value="1000000">5,00,000 - 10,000,00</option>
-            <option value="2000000">10,000,00 - 20,000,00</option>
-            <option value="3000000">20,000,00 - 30,000,00</option>
-            <option value="2000000">30,000,00 - 40,000,00</option>
-            <option value="2000000">40,000,00 - 50,000,00</option>
-            <option value="2000000">50,000,00 - 60,000,00</option>
-            <option value="2000000">60,000,00 - 70,000,00</option>
-            <option value="2000000">70,000,00 - 80,000,00</option>
-
+            <option value="500000">Under 5,00,000</option>
+            <option value="1000000">5,00,000 - 10,00,000</option>
+            <option value="2000000">10,00,000 - 20,00,000</option>
+            <option value="3000000">20,00,000 - 30,00,000</option>
+            <option value="4000000">30,00,000 - 40,00,000</option>
+            <option value="5000000">40,00,000 - 50,00,000</option>
+            <option value="6000000">Above 50,00,000</option>
           </select>
         </div>
+
         <div className="filter-item">
           <label>Search by Transmission</label>
           <select name="transmission" value={filters.transmission} onChange={handleFilterChange}>
             <option value="">Select</option>
             <option value="manual">Manual</option>
             <option value="automatic">Automatic</option>
-            <option value="hybrid">Hybrid</option>
-            <option value="ev">EV</option>
           </select>
         </div>
+
         <div className="filter-item">
           <label>Search by Fuel Type</label>
           <select name="fuelType" value={filters.fuelType} onChange={handleFilterChange}>
@@ -80,6 +69,7 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
             <option value="ev">EV</option>
           </select>
         </div>
+
         <div className="filter-item">
           <button onClick={handleSearch}>Search</button>
         </div>
@@ -87,53 +77,31 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
     </div>
   );
 };
-// Car Listing Component
-const CarListing = ({ car }) => {
-  return (
-    <div className="car-listing">
-      <img src={car.photo} alt={car.name} />
-      <div className="car-details">
-        <h3>{car.name}</h3>
-        <span className="price">{car.price}</span>
-        <div className="additional-info">
-          <span>{car.kilometers}</span>
-          <span>{car.transmission}</span>
-          <span>{car.makeYear}</span>
-          <span>{car.engine}</span>
-        </div>
-        <p>{car.description}</p>
-        <button>View Seller Details</button>
-      </div>
-    </div>
-  );
-};
-// Main BuyPage Component
+
 function BuyPage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
   const [filters, setFilters] = useState({
-    brand: '',           // Changed from 'make'
-    carType: '',         // Changed from 'vehicleType'
+    brand: '',
+    carType: '',
     budget: '',
     transmission: '',
     fuelType: ''
   });
-  // Add this function
+
   const fetchSellerDetails = async (userId) => {
     try {
       const response = await fetch(`http://localhost:5002/api/users/${userId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch seller details');
-      }
-      const data = await response.json();
-      return data;
+      if (!response.ok) throw new Error('Failed to fetch seller details');
+      return await response.json();
     } catch (error) {
       console.error('Error fetching seller details:', error);
       throw error;
     }
   };
+
   const fetchApprovedListings = async (filterParams = null) => {
     try {
       let url = 'http://localhost:5002/api/listings/approved';
@@ -148,19 +116,9 @@ function BuyPage() {
         }
       }
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      console.log('Listing data structure:', data[0]); // Add this line to see the first listing's structure
       setListings(data);
     } catch (error) {
       console.error('Error fetching listings:', error);
@@ -169,19 +127,18 @@ function BuyPage() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchApprovedListings();
   }, []);
-  // Remove the first CarListing component definition and update the second one
+
   const CarListing = ({ listing }) => {
     const [showSellerDetails, setShowSellerDetails] = useState(false);
     const [sellerInfo, setSellerInfo] = useState(null);
     
     const handleViewSellerDetails = async () => {
       try {
-        if (!listing.userId) {
-          throw new Error('No seller ID available');
-        }
+        if (!listing.userId) throw new Error('No seller ID available');
         const data = await fetchSellerDetails(listing.userId);
         setSellerInfo(data);
         setShowSellerDetails(true);
@@ -191,7 +148,6 @@ function BuyPage() {
       }
     };
   
-    // Extract only the filename from the full path
     const filename = listing.imageUrl.split('/').pop().split('\\').pop();
     const imageUrl = `http://localhost:5002/uploads/${filename}`;
     
@@ -201,7 +157,6 @@ function BuyPage() {
           src={imageUrl} 
           alt={listing.adTitle} 
           onError={(e) => {
-            console.error('Image load error:', imageUrl);
             e.target.onerror = null;
             e.target.src = car1;
           }}
@@ -233,29 +188,20 @@ function BuyPage() {
       </div>
     );
   };
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
   };
-  const handleSearch = () => {
-    console.log('Applying filters:', filters);
-    const activeFilters = {};
-    
-    // Only include filters with values
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        activeFilters[key] = value;
-      }
-    });
 
-    // If there are active filters, fetch filtered listings
-    if (Object.keys(activeFilters).length > 0) {
-      fetchApprovedListings(activeFilters);
-    } else {
-      // If no filters, fetch all listings
-      fetchApprovedListings();
-    }
+  const handleSearch = () => {
+    const activeFilters = {};
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) activeFilters[key] = value;
+    });
+    fetchApprovedListings(Object.keys(activeFilters).length > 0 ? activeFilters : null);
   };
+
   return (
     <>
       <Navbar />
@@ -282,4 +228,5 @@ function BuyPage() {
     </>
   );
 }
+
 export default BuyPage;

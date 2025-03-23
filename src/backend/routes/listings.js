@@ -38,7 +38,6 @@ router.get('/approved', async (req, res) => {
   try {
     const { make, vehicleType, budget, transmission, fuelType } = req.query;
     
-    // Build base query
     const baseQuery = { status: 'approved' };
 
     // Add filters to base query
@@ -112,20 +111,20 @@ router.patch('/:id/status', async (req, res) => {
   }
 });
 // Get all listings
-// Move the 'all' route to the top, before any parameterized routes
 router.get('/all', async (req, res) => {
   try {
     const user = req.headers.user ? JSON.parse(req.headers.user) : null;
     
     const listings = await Listing.find()
-      .select('adTitle brand model price status imageUrl carType transmission fuelType') // Changed description to adTitle
+      .select('adTitle brand model price status imageUrl carType transmission fuelType makeYear engine kmsDriven description ownership')
       .sort({ createdAt: -1 });
     
     const sanitizedListings = listings.map(listing => ({
       _id: listing._id,
-      title: listing.adTitle, // Changed to use adTitle
+      adTitle: listing.adTitle,
+      title: listing.adTitle,  
       brand: listing.brand,
-      model: listing.model,
+      model: listing.model,    
       price: listing.price,
       status: listing.status,
       imageUrl: listing.imageUrl,
@@ -141,4 +140,37 @@ router.get('/all', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+// Add this delete endpoint before module.exports
+router.delete('/:id', async (req, res) => {
+  try {
+    const user = JSON.parse(req.headers.user || '{}');
+    
+    // Check if user is admin
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    // Delete the listing
+    await Listing.findByIdAndDelete(req.params.id);
+
+    // Delete associated image if it exists
+    if (listing.imageUrl) {
+      const imagePath = path.join(__dirname, '../uploads', listing.imageUrl);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
+    res.json({ message: 'Listing deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting listing:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

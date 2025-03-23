@@ -9,10 +9,9 @@ import SellPage from './pages/sellpage';
 import CompareCar from './pages/comparecar';  
 import CarService from './pages/carservice';  
 import AdminDashboard from './pages/AdminDashboard';  
-import ManageUsers from './pages/ManageUsers';  
-import ManageCars from './pages/ManageCars';  
+import ManageUsers from './pages/ManageUsers';
+import ManageServices from './pages/ManageServices';
 
-// ProtectedRoute component to protect specific routes
 const ProtectedRoute = ({ element, redirectTo, condition }) => {
   return condition ? element : <Navigate to={redirectTo} replace />;
 };
@@ -25,8 +24,7 @@ function App() {
   return (
     <div className="App">
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} /> 
+=        <Route path="/" element={<LandingPage />} /> 
         <Route path="/profile" element={<Profile />} /> 
         <Route path="/login" element={<Login />} />    
         <Route path="/signup" element={<Signup />} />  
@@ -60,16 +58,18 @@ function App() {
             />
           }
         />  
+        
         <Route 
-          path="/admin-dashboard/cars" 
+          path="/admin-dashboard/services" 
           element={
             <ProtectedRoute 
-              element={<ManageCars />} 
+              element={<ManageServices />} 
               redirectTo="/" 
               condition={isAdmin} 
             />
           }
-        />  
+        />
+        
       </Routes>
     </div>
   );
