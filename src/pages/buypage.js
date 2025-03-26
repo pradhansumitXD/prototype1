@@ -3,7 +3,7 @@ import Navbar from './navbar';
 import './buypage.css'; 
 import car1 from '../assets/images/car1.jpg';
 
-const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
+const FilterSection = ({ filters, handleFilterChange, handleSearch, resetFilters }) => {
   return (
     <div className="left-column">
       <h1>Discover a Car</h1>
@@ -41,13 +41,13 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
           <label>Search by Budget</label>
           <select name="budget" value={filters.budget} onChange={handleFilterChange}>
             <option value="">Select</option>
-            <option value="500000">Under 5,00,000</option>
-            <option value="1000000">5,00,000 - 10,00,000</option>
-            <option value="2000000">10,00,000 - 20,00,000</option>
-            <option value="3000000">20,00,000 - 30,00,000</option>
-            <option value="4000000">30,00,000 - 40,00,000</option>
-            <option value="5000000">40,00,000 - 50,00,000</option>
-            <option value="6000000">Above 50,00,000</option>
+            <option value="100000-500000">1,00,000 - 5,00,000</option>
+            <option value="500000-1000000">5,00,000 - 10,00,000</option>
+            <option value="1000000-2000000">10,00,000 - 20,00,000</option>
+            <option value="2000000-3000000">20,00,000 - 30,00,000</option>
+            <option value="3000000-4000000">30,00,000 - 40,00,000</option>
+            <option value="4000000-5000000">40,00,000 - 50,00,000</option>
+            <option value="5000000-999999999">Above 50,00,000</option>
           </select>
         </div>
 
@@ -55,8 +55,9 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
           <label>Search by Transmission</label>
           <select name="transmission" value={filters.transmission} onChange={handleFilterChange}>
             <option value="">Select</option>
-            <option value="manual">Manual</option>
-            <option value="automatic">Automatic</option>
+            <option value="Manual">Manual</option>
+            <option value="Automatic">Automatic</option>
+            <option value="EV">EV</option>
           </select>
         </div>
 
@@ -64,15 +65,18 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch }) => {
           <label>Search by Fuel Type</label>
           <select name="fuelType" value={filters.fuelType} onChange={handleFilterChange}>
             <option value="">Select</option>
-            <option value="petrol">Petrol</option>
-            <option value="diesel">Diesel</option>
-            <option value="ev">EV</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="EV">EV</option>
           </select>
         </div>
 
         <div className="filter-item">
           <button onClick={handleSearch}>Search</button>
         </div>
+      </div>
+      <div className="filter-actions">
+        <button onClick={resetFilters} className="reset-btn">Reset Filters</button>
       </div>
     </div>
   );
@@ -102,30 +106,67 @@ function BuyPage() {
     }
   };
 
-  const fetchApprovedListings = async (filterParams = null) => {
+  const fetchApprovedListings = async (filterParams) => {
     try {
+      setLoading(true);
       let url = 'http://localhost:5002/api/listings/approved';
       
       if (filterParams) {
         const queryParams = new URLSearchParams();
         Object.entries(filterParams).forEach(([key, value]) => {
-          if (value) queryParams.append(key, value);
+          if (value) {
+            if (key === 'budget') {
+              const [min, max] = value.split('-');
+              queryParams.append('minPrice', min);
+              queryParams.append('maxPrice', max);
+            } else {
+              queryParams.append(key, value);
+            }
+          }
         });
-        if (queryParams.toString()) {
-          url += `?${queryParams.toString()}`;
+        
+        const queryString = queryParams.toString();
+        if (queryString) {
+          url += `?${queryString}`;
         }
       }
 
+      console.log('Fetching URL:', url); 
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
+      console.log('Received data:', data); 
       setListings(data);
+      setError(null);
     } catch (error) {
       console.error('Error fetching listings:', error);
       setError('Failed to load listings. Please try again later.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = () => {
+    const activeFilters = {};
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== '') {
+        activeFilters[key] = value;
+      }
+    });
+    console.log('Active filters:', activeFilters); 
+    fetchApprovedListings(activeFilters);
+  };
+
+  // Add resetFilters function
+  const resetFilters = () => {
+    setFilters({
+      brand: '',
+      carType: '',
+      budget: '',
+      transmission: '',
+      fuelType: ''
+    });
+    fetchApprovedListings();
   };
 
   useEffect(() => {
@@ -194,14 +235,6 @@ function BuyPage() {
     setFilters({ ...filters, [name]: value });
   };
 
-  const handleSearch = () => {
-    const activeFilters = {};
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) activeFilters[key] = value;
-    });
-    fetchApprovedListings(Object.keys(activeFilters).length > 0 ? activeFilters : null);
-  };
-
   return (
     <>
       <Navbar />
@@ -209,7 +242,8 @@ function BuyPage() {
         <FilterSection 
           filters={filters} 
           handleFilterChange={handleFilterChange} 
-          handleSearch={handleSearch} 
+          handleSearch={handleSearch}
+          resetFilters={resetFilters}
         />
         <div className="right-column">
           {loading ? (

@@ -33,58 +33,31 @@ router.post('/create', upload.single('image'), async (req, res) => {
   }
 });
 // Get approved listings
-// Update the approved listings route
+// Add this route to handle approved listings
 router.get('/approved', async (req, res) => {
   try {
-    const { make, vehicleType, budget, transmission, fuelType } = req.query;
+    const { brand, carType, minPrice, maxPrice, transmission, fuelType } = req.query;
     
-    const baseQuery = { status: 'approved' };
-
-    // Add filters to base query
-    if (make) baseQuery.brand = new RegExp(make, 'i');
-    if (vehicleType) baseQuery.carType = new RegExp(vehicleType, 'i');
-    if (transmission) baseQuery.transmission = new RegExp(transmission, 'i');
-    if (fuelType) baseQuery.fuelType = new RegExp(fuelType, 'i');
-    if (budget) baseQuery.price = { $lte: parseInt(budget) };
-
-    const pipeline = [
-      { $match: baseQuery },
-      {
-        $addFields: {
-          exactMatchScore: {
-            $sum: [
-              { $cond: [{ $eq: [{ $toLower: "$brand" }, make?.toLowerCase()] }, 50, 0] },
-              { $cond: [{ $eq: [{ $toLower: "$carType" }, vehicleType?.toLowerCase()] }, 40, 0] },
-              { $cond: [{ $eq: [{ $toLower: "$transmission" }, transmission?.toLowerCase()] }, 30, 0] },
-              { $cond: [{ $eq: [{ $toLower: "$fuelType" }, fuelType?.toLowerCase()] }, 20, 0] }
-            ]
-          }
-        }
-      },
-      {
-        $sort: {
-          exactMatchScore: -1,
-          price: 1,
-          createdAt: -1
-        }
-      }
-    ];
-
-    const listings = await Listing.aggregate(pipeline);
-    console.log('Filter criteria:', { make, vehicleType, transmission, fuelType, budget });
-    console.log('Matched listings:', listings.map(l => ({ 
-      brand: l.brand, 
-      score: l.exactMatchScore 
-    })));
+    const filter = { status: 'approved' };
     
-    res.json(listings);
+    if (brand) filter.brand = brand;
+    if (carType) filter.carType = carType;
+    if (transmission) filter.transmission = transmission;
+    if (fuelType) filter.fuelType = fuelType;
+    
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = parseInt(minPrice);
+      if (maxPrice) filter.price.$lte = parseInt(maxPrice);
+    }
 
+    console.log('Filter query:', filter); // Debug log
+
+    const approvedListings = await Listing.find(filter);
+    res.json(approvedListings);
   } catch (error) {
-    console.error('Error in filtered listings:', error);
-    res.status(500).json({ 
-      message: 'Error fetching filtered listings',
-      error: error.message 
-    });
+    console.error('Error fetching approved listings:', error);
+    res.status(500).json({ message: 'Error fetching approved listings' });
   }
 });
 // Update listing status

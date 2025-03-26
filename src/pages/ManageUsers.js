@@ -17,7 +17,8 @@ function ManageUsers() {
         const response = await fetch('http://localhost:5002/api/admin/users', {
           headers: {
             'Content-Type': 'application/json',
-            'user': JSON.stringify(user)
+            'Authorization': user.id,
+            'Role': user.role
           }
         });
 
@@ -40,12 +41,13 @@ function ManageUsers() {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const adminUser = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(localStorage.getItem('user'));
       const response = await fetch(`http://localhost:5002/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'user': JSON.stringify(adminUser)
+          'Authorization': user.id,
+          'Role': user.role
         }
       });
 
@@ -68,12 +70,13 @@ function ManageUsers() {
 
   const handleUpdate = async () => {
     try {
-      const adminUser = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(localStorage.getItem('user'));
       const response = await fetch(`http://localhost:5002/api/admin/users/${editingUser._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'user': JSON.stringify(adminUser)
+          'Authorization': user.id,
+          'Role': user.role
         },
         body: JSON.stringify({
           username: editUsername,
@@ -150,12 +153,15 @@ function ManageUsers() {
               <td>
                 {editingUser?._id === user._id ? (
                   <>
+                    <div className="button-group">
                     <button className="save-btn" onClick={handleUpdate}>
-                      <FontAwesomeIcon icon={faSave} /> Save
-                    </button>
-                    <button className="cancel-btn" onClick={() => setEditingUser(null)}>
-                      <FontAwesomeIcon icon={faTimes} /> Cancel
-                    </button>
+    <FontAwesomeIcon icon={faSave} /> Save
+  </button>
+  <button className="cancel-btn" onClick={() => setEditingUser(null)}>
+    <FontAwesomeIcon icon={faTimes} /> Cancel
+  </button>
+</div>
+
                   </>
                 ) : (
                   <div className="action-buttons">

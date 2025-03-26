@@ -4,6 +4,7 @@ import './AdminDashboard.css';
 import ManageUsers from './ManageUsers';
 import ManageListings from './ManageListings';
 import ManageServices from './ManageServices';
+import AdminUserCreate from './AdminUserCreate';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -83,6 +84,11 @@ function AdminDashboard() {
               Manage Services
             </Link>
           </li>
+          <li>
+            <Link to="/admin-dashboard/create-admin" className={isActive("/admin-dashboard/create-admin")}>
+              Create Admin
+            </Link>
+          </li>
           <li className="logout-item">
             <button onClick={handleLogout} className="logout-btn">
               Logout
@@ -118,6 +124,7 @@ function AdminDashboard() {
             <Route path="manageusers/*" element={<ManageUsers />} />
             <Route path="listings/*" element={<ManageListings />} />
             <Route path="manageservices/*" element={<ManageServices />} />
+            <Route path="create-admin" element={<AdminUserCreate />} />
           </Routes>
         </div>
       </div>

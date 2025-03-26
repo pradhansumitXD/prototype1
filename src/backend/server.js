@@ -5,20 +5,23 @@ const mongoose = require('mongoose');
 const path = require('path');  
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/userRoutes');
-const adminRoutes = require('./routes/admin');
+const adminRoutes = require('./routes/adminRoutes');
 const listingsRouter = require('./routes/listings');
 const servicesRouter = require('./routes/services');
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Upload directory setup
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!require('fs').existsSync(uploadsDir)) {
     require('fs').mkdirSync(uploadsDir, { recursive: true });
 }
 
+// Static files handling
 app.use('/uploads', express.static(uploadsDir, {
     setHeaders: (res, path) => {
         if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
@@ -29,37 +32,38 @@ app.use('/uploads', express.static(uploadsDir, {
     }
 }));
 
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminRoutes); 
 app.use('/api/listings', listingsRouter);
-app.use('/api/services', servicesRouter);  
+app.use('/api/services', servicesRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Connect to MongoDB with error handling
+// MongoDB connection
 mongoose.connect(process.env.MONGODB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 })
 .then(() => {
-  console.log('Connected to MongoDB');
+    console.log('Connected to MongoDB');
 })
 .catch(err => {
-  console.error('MongoDB connection error:', err);
-  process.exit(1);  
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
 });
 
-// Add this to handle MongoDB connection errors
 mongoose.connection.on('error', err => {
-  console.error('MongoDB connection error:', err);
+    console.error('MongoDB connection error:', err);
 });
 
+// Server startup
 const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });

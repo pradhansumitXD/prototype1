@@ -82,6 +82,34 @@
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
 }
 
+.filter-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.reset-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+    background-color: #000000;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.reset-btn:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+}
+
 
 .right-column {
     width: 70%;

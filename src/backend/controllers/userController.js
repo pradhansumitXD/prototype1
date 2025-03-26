@@ -127,7 +127,6 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Database connection check
     if (!User.db.readyState) {
       console.error('Database connection not ready');
       return res.status(500).json({ message: "Database connection error" });
@@ -143,11 +142,9 @@ const registerUser = async (req, res) => {
       return res.status(409).json({ message: "Email already in use. Please log in." });
     }
 
-    // Log password hashing
     console.log('Hashing password...');
     const hashedPassword = await bcrypt.hash(password.trim(), 12);
 
-    // Log user creation
     console.log('Creating new user object...');
     const newUser = new User({
       username: username.trim(),
@@ -181,7 +178,7 @@ const registerUser = async (req, res) => {
       name: error.name,
       code: error.code,
       stack: error.stack,
-      details: error.errors // Mongoose validation errors
+      details: error.errors 
     });
 
     if (error.name === 'ValidationError') {

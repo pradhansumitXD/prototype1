@@ -69,7 +69,6 @@ function ManageServices() {
     fetchServices();
   }, []);
 
-  // Update handleAddService function
   const handleAddService = async () => {
     if (!newService.title || !newService.description || !selectedImage || !newService.vendorName) {
       setError('Please fill all required fields and upload an image');
@@ -86,7 +85,6 @@ function ManageServices() {
       }
 
       const formData = new FormData();
-      // checking vendorname is properly set
       if (!newService.vendorName.trim()) {
         setError('Vendor name is required');
         return;
@@ -137,7 +135,6 @@ function ManageServices() {
     }
   };
 
-  // Update handleUpdate function
   const handleUpdate = async (id) => {
     try {
       const formData = new FormData();

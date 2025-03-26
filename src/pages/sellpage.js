@@ -35,11 +35,10 @@ function SellPage() {
       }
 
       const formData = new FormData();
-      formData.append('userId', user.id);  // Changed from 'seller' to 'userId'
+      formData.append('userId', user.id);  
       
-      // Rename year to makeYear before sending
       const { year, ...otherDetails } = carDetails;
-      formData.append('makeYear', year);  // Changed from 'year' to 'makeYear'
+      formData.append('makeYear', year);  
       
       // Append all other details
       Object.entries(otherDetails).forEach(([key, value]) => {
@@ -93,10 +92,15 @@ function SellPage() {
         ...carDetails,
         image: files[0]
       });
+    } else if (name === "price" || name === "year" || name === "kmsDriven") {
+      setCarDetails({
+        ...carDetails,
+        [name]: value ? parseInt(value) : ""
+      });
     } else {
       setCarDetails({
         ...carDetails,
-        [name]: value,
+        [name]: value
       });
     }
   };
@@ -193,10 +197,7 @@ function SellPage() {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label>Price</label>
-                <input type="number" name="price" value={carDetails.price} onChange={handleInputChange} required />
-              </div>
+              
 
               <div className="form-group">
                 <label>Kilometers Driven</label>
@@ -205,7 +206,6 @@ function SellPage() {
                   name="kmsDriven" 
                   value={carDetails.kmsDriven} 
                   onChange={handleInputChange}
-                  placeholder="Enter total kilometers driven"
                   required 
                 />
               </div>
@@ -215,7 +215,6 @@ function SellPage() {
                 <input type="file" name="image" onChange={handleInputChange} required />
               </div>
 
-              {/* Move Ad Title field to the top of the form */}
                          <div className="form-group">
                            <label>Ad Title</label>
                            <input 
@@ -223,27 +222,15 @@ function SellPage() {
                              name="adTitle" 
                              value={carDetails.adTitle} 
                              onChange={handleInputChange}
-                             placeholder="Enter a title for your ad (e.g., '2020 Honda Civic - Excellent Condition')"
                              required 
                            />
                          </div>
 
-                         <div className="form-group">
-                           <label>Car Brand</label>
-                           <select name="brand" value={carDetails.brand} onChange={handleInputChange} required>
-                             <option value="">Select Brand</option>
-                             <option value="Hyundai">Hyundai</option>
-                             <option value="Suzuki">Suzuki</option>
-                             <option value="Tata">Tata</option>
-                             <option value="KIA">KIA</option>
-                             <option value="Ford">Ford</option>
-                             <option value="Mahindra">Mahindra</option>
-                             <option value="Toyota">Toyota</option>
-                             <option value="Nissan">Nissan</option>
-                             <option value="Volkswagen">Volkswagen</option>
-                             <option value="Others">Others</option>
-                           </select>
-                         </div>
+
+              <div className="form-group">
+                <label>Price</label>
+                <input type="number" name="price" value={carDetails.price} onChange={handleInputChange} required />
+              </div>
 
               <div className="form-group">
                 <label>Description</label>

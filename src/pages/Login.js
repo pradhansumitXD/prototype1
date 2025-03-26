@@ -11,15 +11,13 @@ function Login({ closeModal }) {
 
   const navigate = useNavigate();  
 
-  const API_URL = "http://localhost:5002/api/users/login";
-
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMessage("");
     
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch('http://localhost:5002/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,23 +34,19 @@ function Login({ closeModal }) {
         throw new Error(data.message || "Invalid login credentials.");
       }
 
-      localStorage.setItem("userId", data.user.id);
-      localStorage.setItem("userRole", data.user.role);
       localStorage.setItem("user", JSON.stringify(data.user));
       setSuccessMessage("Login successful!");
 
-      // Add delay before redirect
       setTimeout(() => {
         if (data.user.role === "admin") {
           window.location.href = "/admin-dashboard";
         } else {
           window.location.href = "/";
         }
-      }, 1500); // making 1.5s delay to display success message
+      }, 1500);
 
       setLoginEmail("");
       setLoginPassword("");
-      
     } catch (error) {
       console.error('Login error:', error);
       setErrorMessage(error.message || 'Login failed. Please try again.');

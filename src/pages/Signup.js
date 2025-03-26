@@ -6,7 +6,6 @@ function Signup({ closeModal }) {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [role, setRole] = useState('user'); 
   const [errorMessage, setErrorMessage] = useState(''); 
   const [successMessage, setSuccessMessage] = useState(''); 
 
@@ -26,7 +25,6 @@ function Signup({ closeModal }) {
     setSuccessMessage('');
     
     try {
-      // Input validation
       if (!signupName || !signupEmail || !signupPhone || !signupPassword) {
         setErrorMessage('All fields are required.');
         return;
@@ -42,7 +40,6 @@ function Signup({ closeModal }) {
         return;
       }
     
-      // Updated fetch call with the correct endpoint
       const response = await fetch('http://localhost:5002/api/auth/register', {
         method: 'POST',
         headers: {
@@ -53,7 +50,7 @@ function Signup({ closeModal }) {
           email: signupEmail.trim().toLowerCase(),
           phone: signupPhone.trim(),
           password: signupPassword,
-          role: role
+          role: 'user'
         })
       });
 
@@ -63,9 +60,7 @@ function Signup({ closeModal }) {
         throw new Error(data.message || 'Registration failed');
       }
 
-      
       localStorage.setItem('user', JSON.stringify(data.user));
-      
       setSuccessMessage('Registration successful! Redirecting...');
       
       setTimeout(() => {
@@ -73,15 +68,9 @@ function Signup({ closeModal }) {
         setSignupEmail('');
         setSignupPhone('');
         setSignupPassword('');
-        setRole('user');
         setSuccessMessage('');
         closeModal();
-        // Redirect based on role
-        if (data.user.role === 'admin') {
-          window.location.href = '/admin';
-        } else {
-          window.location.href = '/';
-        }
+        window.location.href = '/'; 
       }, 1500);
     
     } catch (error) {
@@ -140,22 +129,8 @@ function Signup({ closeModal }) {
           />
         </div>
 
-        {/* Role Selection Dropdown */}
-        <div className="input-container">
-          <label htmlFor="signup-role">Role</label>
-          <select
-            id="signup-role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-          >
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
 
         {successMessage && <p className="success-message">{successMessage}</p>}
-
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <button type="submit" className="signup-btn">Signup</button>
