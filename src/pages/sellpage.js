@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "./navbar"; 
 import "./sellpage.css";
+import { FaCamera, FaTimes } from 'react-icons/fa';
 
 function SellPage() {
   const [carDetails, setCarDetails] = useState({
@@ -13,19 +14,24 @@ function SellPage() {
     engine: "",
     ownership: "",
     price: "",
-    image: null,
     adTitle: "",
     description: "",
-    kmsDriven: "", // Add this line
+    kmsDriven: "",
+    images: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Add this to your state declarations at the top
+  const [successMessage, setSuccessMessage] = useState(null);
+  
+  // Modify the handleSubmit function's success handling
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+    setSuccessMessage(null); // Reset success message
+  
     try {
       const userString = localStorage.getItem('user');
       const user = userString ? JSON.parse(userString) : null;
@@ -34,26 +40,35 @@ function SellPage() {
         throw new Error('Please login to create a listing');
       }
 
+      if (carDetails.images.length === 0) {
+        throw new Error('Please upload at least one image');
+      }
+
       const formData = new FormData();
-      formData.append('userId', user.id);  
       
-      const { year, ...otherDetails } = carDetails;
-      formData.append('makeYear', year);  
-      
-      // Append all other details
-      Object.entries(otherDetails).forEach(([key, value]) => {
-        if (key === 'image') {
-          if (value) {
-            formData.append('image', value);
-          }
-        } else {
-          formData.append(key, value);
-        }
+      // Add each image individually
+      carDetails.images.forEach((image) => {
+        formData.append('images', image); // Changed from 'images[]' to 'images'
       });
+
+      // Add all other fields
+      formData.append('userId', user.id);
+      formData.append('brand', carDetails.brand);
+      formData.append('model', carDetails.model);
+      formData.append('carType', carDetails.carType);
+      formData.append('fuelType', carDetails.fuelType);
+      formData.append('makeYear', carDetails.year);
+      formData.append('transmission', carDetails.transmission);
+      formData.append('engine', carDetails.engine);
+      formData.append('ownership', carDetails.ownership);
+      formData.append('kmsDriven', carDetails.kmsDriven);
+      formData.append('price', carDetails.price);
+      formData.append('adTitle', carDetails.adTitle);
+      formData.append('description', carDetails.description);
 
       const response = await fetch('http://localhost:5002/api/listings/create', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -61,7 +76,10 @@ function SellPage() {
         throw new Error(errorData.message || 'Failed to create listing');
       }
 
-      alert('Listing created successfully!');
+      const data = await response.json();
+      setSuccessMessage('Listing created successfully! Redirecting to home page...');
+      
+      // Reset form
       setCarDetails({
         brand: "",
         model: "",
@@ -72,14 +90,20 @@ function SellPage() {
         engine: "",
         ownership: "",
         price: "",
-        image: null,
         adTitle: "",
         description: "",
+        kmsDriven: "",
+        images: [],
       });
-
+      
+      // Delay redirect to show success message and redirect to landing page
+      setTimeout(() => {
+        window.location.href = '/';  // Changed from '/buy' to '/'
+      }, 2000);
+  
     } catch (err) {
       console.error('Error creating listing:', err);
-      setError(err.message || 'Failed to create listing');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -87,11 +111,15 @@ function SellPage() {
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "image") {
-      setCarDetails({
-        ...carDetails,
-        image: files[0]
-      });
+    if (name === "images") {
+      const newImages = Array.from(files);
+      const totalImages = carDetails.images.length + newImages.length;
+      if (totalImages <= 5) {
+        setCarDetails({
+          ...carDetails,
+          images: [...carDetails.images, ...newImages]
+        });
+      }
     } else if (name === "price" || name === "year" || name === "kmsDriven") {
       setCarDetails({
         ...carDetails,
@@ -105,13 +133,22 @@ function SellPage() {
     }
   };
 
+  const handleRemoveImage = (indexToRemove) => {
+    setCarDetails(prev => ({
+      ...prev,
+      images: prev.images.filter((_, index) => index !== indexToRemove)
+    }));
+  };
+
+  // Add this in the JSX, right after the <h1> element
   return (
     <>
       <Navbar />
       <div className="sell-page-container">
         <div className="sell-form-container">
           <h1 className="sell-heading">Sell Your Car</h1>
-
+          {successMessage && <div className="success-message">{successMessage}</div>}
+          {error && <div className="error-message">{error}</div>}
           <form className="sell-form" onSubmit={handleSubmit} encType="multipart/form-data">
             <div className="form-left">
               <div className="form-group">
@@ -197,8 +234,6 @@ function SellPage() {
                 </select>
               </div>
 
-              
-
               <div className="form-group">
                 <label>Kilometers Driven</label>
                 <input 
@@ -210,34 +245,89 @@ function SellPage() {
                 />
               </div>
 
-              <div className="form-group">
-                <label>Car Image</label>
-                <input type="file" name="image" onChange={handleInputChange} required />
+              <div className="form-group image-upload-container">
+                <label>Car Images (Up to 5 images)</label>
+                <div className="image-upload-grid">
+                  {[...Array(5)].map((_, index) => (
+                    <div key={index} className="upload-box">
+                      {index < carDetails.images.length ? (
+                        <div className="image-preview-box">
+                          <img
+                            src={URL.createObjectURL(carDetails.images[index])}
+                            alt={`Car preview ${index + 1}`}
+                          />
+                          <button
+                            type="button"
+                            className="remove-image-btn"
+                            onClick={() => handleRemoveImage(index)}
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      ) : (
+                        <label 
+                          htmlFor={`image-input-${index}`} 
+                          className={`upload-label ${carDetails.images.length >= 5 ? 'disabled' : ''}`}
+                        >
+                          <FaCamera className="upload-icon" />
+                          <span>Add Photo</span>
+                          <input
+                            id={`image-input-${index}`}
+                            type="file"
+                            name="images"
+                            onChange={handleInputChange}
+                            accept="image/*"
+                            disabled={carDetails.images.length >= 5}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {carDetails.images.length === 0 && (
+                  <p className="upload-hint">Please upload at least one image of your car</p>
+                )}
+                {carDetails.images.length === 5 && (
+                  <p className="max-images-hint">Maximum number of images reached (5)</p>
+                )}
               </div>
 
-                         <div className="form-group">
-                           <label>Ad Title</label>
-                           <input 
-                             type="text" 
-                             name="adTitle" 
-                             value={carDetails.adTitle} 
-                             onChange={handleInputChange}
-                             required 
-                           />
-                         </div>
-
+              <div className="form-group">
+                <label>Ad Title</label>
+                <input 
+                  type="text" 
+                  name="adTitle" 
+                  value={carDetails.adTitle} 
+                  onChange={handleInputChange}
+                  required 
+                />
+              </div>
 
               <div className="form-group">
                 <label>Price</label>
-                <input type="number" name="price" value={carDetails.price} onChange={handleInputChange} required />
+                <input 
+                  type="number" 
+                  name="price" 
+                  value={carDetails.price} 
+                  onChange={handleInputChange} 
+                  required 
+                />
               </div>
 
               <div className="form-group">
                 <label>Description</label>
-                <textarea name="description" value={carDetails.description} onChange={handleInputChange} required />
+                <textarea 
+                  name="description" 
+                  value={carDetails.description} 
+                  onChange={handleInputChange} 
+                  required 
+                />
               </div>
 
-              <button type="submit" className="submit-btn">Submit</button>
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? 'Submitting...' : 'Submit Listing'}
+              </button>
             </div>
           </form>
         </div>

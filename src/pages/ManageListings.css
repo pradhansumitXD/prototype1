@@ -161,3 +161,12 @@
   font-weight: 500;
   min-width: 100px;
 }
+
+.success-message {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  text-align: center;
+}

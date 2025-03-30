@@ -3,14 +3,18 @@ const Listing = require('../models/listing');
 // Create new listing
 const createListing = async (req, res) => {
   try {
+    const imageUrls = req.files ? req.files.map(file => file.filename) : [];
+    
     const listing = new Listing({
       ...req.body,
-      imageUrl: req.file.path,
-      userId: JSON.parse(req.headers.user)._id
+      imageUrl: imageUrls,
+      userId: req.body.userId
     });
+    
     await listing.save();
     res.status(201).json({ message: 'Listing created successfully', listing });
   } catch (error) {
+    console.error('Create listing error:', error);
     res.status(400).json({ message: error.message });
   }
 };

@@ -3,11 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');  
+const fs = require('fs');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const listingsRouter = require('./routes/listings');
 const servicesRouter = require('./routes/services');
+const uploadsConfig = require('./config/uploadConfig');
 
 const app = express();
 
@@ -16,21 +18,16 @@ app.use(cors());
 app.use(express.json());
 
 // Upload directory setup
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!require('fs').existsSync(uploadsDir)) {
-    require('fs').mkdirSync(uploadsDir, { recursive: true });
+const uploadsPath = path.join(__dirname, '../../uploads');
+console.log('Current uploads path:', uploadsPath); // Add this to debug
+
+// Only create if it doesn't exist
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
 }
 
-// Static files handling
-app.use('/uploads', express.static(uploadsDir, {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
-            res.setHeader('Content-Type', 'image/jpeg');
-        } else if (path.endsWith('.png')) {
-            res.setHeader('Content-Type', 'image/png');
-        }
-    }
-}));
+// Serve static files from uploads directory
+app.use('/uploads', express.static(uploadsPath));
 
 // API Routes
 app.use('/api/auth', authRoutes);

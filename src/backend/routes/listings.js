@@ -4,14 +4,15 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Listing = require('../models/listing');
-// Configure multer for image upload
+const uploadsConfig = require('../config/uploadConfig');
+
+// Update storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+    if (!fs.existsSync(uploadsConfig.path)) {
+      fs.mkdirSync(uploadsConfig.path, { recursive: true });
     }
-    cb(null, uploadPath);
+    cb(null, uploadsConfig.path);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
@@ -19,16 +20,21 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 // Create new listing
-router.post('/create', upload.single('image'), async (req, res) => {
+// Update the create route
+router.post('/create', upload.array('images', 5), async (req, res) => {
   try {
+    const imageUrls = req.files ? req.files.map(file => file.filename) : [];
+    
     const listing = new Listing({
       ...req.body,
-      imageUrl: req.file.filename, // Store only the filename
+      imageUrl: imageUrls,
       status: 'pending'
     });
+    
     await listing.save();
     res.status(201).json({ message: 'Listing created successfully', listing });
   } catch (error) {
+    console.error('Error creating listing:', error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -118,7 +124,6 @@ router.delete('/:id', async (req, res) => {
   try {
     const user = JSON.parse(req.headers.user || '{}');
     
-    // Check if user is admin
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin only.' });
     }
@@ -128,18 +133,21 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Delete the listing
-    await Listing.findByIdAndDelete(req.params.id);
-
-    // Delete associated image if it exists
+    // Delete associated image files from uploads directory
     if (listing.imageUrl) {
-      const imagePath = path.join(__dirname, '../uploads', listing.imageUrl);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
+      const images = Array.isArray(listing.imageUrl) ? listing.imageUrl : [listing.imageUrl];
+      images.forEach(image => {
+        const imagePath = path.join(__dirname, '../../uploads', image);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+          console.log(`Deleted image: ${imagePath}`);
+        }
+      });
     }
 
-    res.json({ message: 'Listing deleted successfully' });
+    // Delete the listing from database
+    await Listing.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Listing and associated images deleted successfully' });
   } catch (error) {
     console.error('Error deleting listing:', error);
     res.status(500).json({ message: error.message });

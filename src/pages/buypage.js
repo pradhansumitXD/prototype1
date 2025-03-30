@@ -82,10 +82,251 @@ const FilterSection = ({ filters, handleFilterChange, handleSearch, resetFilters
   );
 };
 
+const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showSellerDetails, setShowSellerDetails] = useState(false);
+  const [sellerInfo, setSellerInfo] = useState(null);
+
+  // Define images array from listing.imageUrl
+  const images = Array.isArray(listing.imageUrl) 
+    ? listing.imageUrl 
+    : listing.imageUrl 
+      ? [listing.imageUrl]
+      : [];
+
+  const handleViewSellerDetails = async () => {
+    try {
+      if (!listing.userId) throw new Error('No seller ID available');
+      const data = await fetchSellerDetails(listing.userId);
+      setSellerInfo(data);
+      setShowSellerDetails(true);
+    } catch (error) {
+      console.error('Error fetching seller details:', error);
+      alert('Could not fetch seller details. Please try again later.');
+    }
+  };
+
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return car1;
+    
+    try {
+      const url = imageUrl.toString().trim();
+      if (url.startsWith('/uploads/')) {
+        return `http://localhost:5002${url}`;
+      }
+      if (url.startsWith('http')) {
+        return url;
+      }
+      return `http://localhost:5002/uploads/${encodeURIComponent(url)}`;
+    } catch (error) {
+      console.error('Error in getImageUrl:', error);
+      return car1;
+    }
+  };
+
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  };
+
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  };
+
+  // In PreviewModal component
+  return (
+    <div className="preview-modal" onClick={onClose}>
+      <div className="preview-content" onClick={e => e.stopPropagation()}>
+        <button className="close-btn" onClick={onClose}>×</button>
+        <div className="preview-image-container">
+          <button className="nav-btn prev" onClick={handlePrevImage}>❮</button>
+          <div className="preview-image">
+            <div className="image-wrapper">
+              <img 
+                src={getImageUrl(images[currentImageIndex])}
+                alt={`${listing.adTitle} - Image ${currentImageIndex + 1}`}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = car1;
+                }}
+                // Remove any inline styles if they exist
+              />
+            </div>
+          </div>
+          <button className="nav-btn next" onClick={handleNextImage}>❯</button>
+          <div className="image-counter">
+            {currentImageIndex + 1} / {images.length}
+          </div>
+        </div>
+        <div className="preview-details">
+          <h2>{listing.adTitle}</h2>
+          <p className="price">Rs. {Number(listing.price).toLocaleString('en-IN')}</p>
+          <button 
+            className="seller-details-btn" 
+            onClick={handleViewSellerDetails}
+          >
+            View Seller Details
+          </button>
+          <div className="specs-grid">
+            <div className="spec-item">
+              <span className="label">Brand:</span>
+              <span>{listing.brand}</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">Model:</span>
+              <span>{listing.model}</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">Year:</span>
+              <span>{listing.makeYear}</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">Type:</span>
+              <span>{listing.carType}</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">Fuel Type:</span>
+              <span>{listing.fuelType}</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">Transmission:</span>
+              <span>{listing.transmission}</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">Engine:</span>
+              <span>{listing.engine}</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">KMs Driven:</span>
+              <span>{listing.kmsDriven} KM</span>
+            </div>
+            <div className="spec-item">
+              <span className="label">Ownership:</span>
+              <span>{listing.ownership}</span>
+            </div>
+          </div>
+          <div className="description">
+            <h3>Description</h3>
+            <p>{listing.description}</p>
+          </div>
+        </div>
+
+        {/* Add seller modal */}
+        {showSellerDetails && sellerInfo && (
+          <div className="seller-modal" onClick={(e) => {
+            e.stopPropagation();
+            setShowSellerDetails(false);
+          }}>
+            <div className="seller-modal-content" onClick={e => e.stopPropagation()}>
+              <button className="close-btn" onClick={() => setShowSellerDetails(false)}>×</button>
+              <h3>Seller Information</h3>
+              <p><strong>Name:</strong> {sellerInfo.username}</p>
+              <p><strong>Email:</strong> {sellerInfo.email}</p>
+              <p><strong>Phone:</strong> {sellerInfo.phone}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// In CarListing component
+const CarListing = ({ listing, onPreview, fetchSellerDetails }) => {
+  const [showSellerDetails, setShowSellerDetails] = useState(false);
+  const [sellerInfo, setSellerInfo] = useState(null);
+  
+  // Define handleViewSellerDetails before using it
+  const handleViewSellerDetails = async () => {
+    try {
+      if (!listing.userId) throw new Error('No seller ID available');
+      const data = await fetchSellerDetails(listing.userId);
+      setSellerInfo(data);
+      setShowSellerDetails(true);
+    } catch (error) {
+      console.error('Error fetching seller details:', error);
+      alert('Could not fetch seller details. Please try again later.');
+    }
+  };
+  
+  const getListingImage = (listing) => {
+    try {
+      if (!listing || !listing.imageUrl) return car1;
+
+      // Handle array of image URLs
+      if (Array.isArray(listing.imageUrl)) {
+        if (listing.imageUrl.length > 0 && listing.imageUrl[0]) {
+          const imageUrl = listing.imageUrl[0].toString().trim();
+          // Check if the URL already contains '/uploads/'
+          return imageUrl.startsWith('/uploads/') 
+            ? `http://localhost:5002${imageUrl}`
+            : `http://localhost:5002/uploads/${encodeURIComponent(imageUrl)}`;
+        }
+      }
+
+      // Handle single image URL
+      if (typeof listing.imageUrl === 'string') {
+        const imageUrl = listing.imageUrl.trim();
+        return imageUrl.startsWith('/uploads/')
+          ? `http://localhost:5002${imageUrl}`
+          : `http://localhost:5002/uploads/${encodeURIComponent(imageUrl)}`;
+      }
+
+      return car1;
+    } catch (error) {
+      console.error('Error processing listing image:', error, listing?.imageUrl);
+      return car1;
+    }
+  };
+
+  return (
+    <div className="car-listing">
+      <img 
+        src={getListingImage(listing)}
+        alt={listing?.adTitle || 'Car Image'}
+        onClick={() => onPreview(listing)}
+        style={{ cursor: 'pointer' }}
+        onError={(e) => {
+          console.error('Image load error:', listing?.imageUrl, typeof listing?.imageUrl);
+          e.target.onerror = null;
+          e.target.src = car1;
+        }}
+      />
+      <div className="car-details">
+        <h3>{listing.adTitle}</h3>
+        <span className="price">Rs. {Number(listing.price).toLocaleString('en-IN')}</span>
+        <div className="additional-info">
+          <span>{listing.kmsDriven} KM</span>
+          <span>{listing.transmission}</span>
+          <span>{listing.makeYear}</span>
+          <span>{listing.engine}</span>
+        </div>
+        <p>{listing.description}</p>
+        <button onClick={handleViewSellerDetails}>View Seller Details</button>
+      </div>
+
+      {showSellerDetails && sellerInfo && (
+        <div className="seller-modal">
+          <div className="seller-modal-content">
+            <button className="close-btn" onClick={() => setShowSellerDetails(false)}>×</button>
+            <h3>Seller Information</h3>
+            <p><strong>Name:</strong> {sellerInfo.username}</p>
+            <p><strong>Email:</strong> {sellerInfo.email}</p>
+            <p><strong>Phone:</strong> {sellerInfo.phone}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function BuyPage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [previewListing, setPreviewListing] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
   
   const [filters, setFilters] = useState({
     brand: '',
@@ -131,16 +372,24 @@ function BuyPage() {
         }
       }
 
-      console.log('Fetching URL:', url); 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      console.log('Received data:', data); 
       setListings(data);
       setError(null);
     } catch (error) {
       console.error('Error fetching listings:', error);
-      setError('Failed to load listings. Please try again later.');
+      setError('Failed to load listings. Please ensure the server is running.');
+      setListings([]);
     } finally {
       setLoading(false);
     }
@@ -153,11 +402,9 @@ function BuyPage() {
         activeFilters[key] = value;
       }
     });
-    console.log('Active filters:', activeFilters); 
     fetchApprovedListings(activeFilters);
   };
 
-  // Add resetFilters function
   const resetFilters = () => {
     setFilters({
       brand: '',
@@ -173,66 +420,14 @@ function BuyPage() {
     fetchApprovedListings();
   }, []);
 
-  const CarListing = ({ listing }) => {
-    const [showSellerDetails, setShowSellerDetails] = useState(false);
-    const [sellerInfo, setSellerInfo] = useState(null);
-    
-    const handleViewSellerDetails = async () => {
-      try {
-        if (!listing.userId) throw new Error('No seller ID available');
-        const data = await fetchSellerDetails(listing.userId);
-        setSellerInfo(data);
-        setShowSellerDetails(true);
-      } catch (error) {
-        console.error('Error fetching seller details:', error);
-        alert('Could not fetch seller details. Please try again later.');
-      }
-    };
-  
-    const filename = listing.imageUrl.split('/').pop().split('\\').pop();
-    const imageUrl = `http://localhost:5002/uploads/${filename}`;
-    
-    return (
-      <div className="car-listing">
-        <img 
-          src={imageUrl} 
-          alt={listing.adTitle} 
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = car1;
-          }}
-        />
-        <div className="car-details">
-          <h3>{listing.adTitle}</h3>
-          <span className="price">Rs. {listing.price}</span>
-          <div className="additional-info">
-            <span>{listing.kmsDriven} KM</span>
-            <span>{listing.transmission}</span>
-            <span>{listing.makeYear}</span>
-            <span>{listing.engine}</span>
-          </div>
-          <p>{listing.description}</p>
-          <button onClick={handleViewSellerDetails}>View Seller Details</button>
-        </div>
-  
-        {showSellerDetails && sellerInfo && (
-          <div className="seller-modal">
-            <div className="seller-modal-content">
-              <button className="close-btn" onClick={() => setShowSellerDetails(false)}>×</button>
-              <h3>Seller Information</h3>
-              <p><strong>Name:</strong> {sellerInfo.username}</p>
-              <p><strong>Email:</strong> {sellerInfo.email}</p>
-              <p><strong>Phone:</strong> {sellerInfo.phone}</p>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
+  };
+
+  const handlePreview = (listing) => {
+    setPreviewListing(listing);
+    setShowPreview(true);
   };
 
   return (
@@ -252,13 +447,25 @@ function BuyPage() {
             <div className="error">{error}</div>
           ) : listings.length > 0 ? (
             listings.map((listing) => (
-              <CarListing key={listing._id} listing={listing} />
+              <CarListing 
+                key={listing._id} 
+                listing={listing}
+                onPreview={handlePreview}
+                fetchSellerDetails={fetchSellerDetails}
+              />
             ))
           ) : (
             <p>No approved listings available</p>
           )}
         </div>
       </div>
+      {showPreview && previewListing && (
+        <PreviewModal 
+          listing={previewListing} 
+          onClose={() => setShowPreview(false)} 
+          fetchSellerDetails={fetchSellerDetails}
+        />
+      )}
     </>
   );
 }

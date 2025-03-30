@@ -1,17 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import './ManageListings.css';
+import car1 from '../assets/images/car1.jpg';
 
 function ManageListings() {
   const [listings, setListings] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editingListing, setEditingListing] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [editFormData, setEditFormData] = useState({
     adTitle: '',
     brand: '',
     model: '',
     price: ''
   });
+
+  // Add this function
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return car1;
+    
+    try {
+      if (Array.isArray(imageUrl)) {
+        // Handle array of image URLs
+        if (imageUrl.length === 0) return car1;
+        const firstImage = imageUrl[0];
+        // Remove any leading array brackets if they exist in the string
+        const cleanImagePath = firstImage.replace(/[\[\]']/g, '').trim();
+        return `http://localhost:5002/uploads/${cleanImagePath}`;
+      }
+
+      // Handle single image URL
+      const cleanImagePath = imageUrl.replace(/[\[\]']/g, '').trim();
+      return `http://localhost:5002/uploads/${cleanImagePath}`;
+    } catch (error) {
+      console.error('Error processing image URL:', error);
+      return car1;
+    }
+  };
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -53,44 +78,35 @@ function ManageListings() {
   const handleStatusUpdate = async (listingId, newStatus) => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
-      // Check these API endpoints
       const response = await fetch(`http://localhost:5002/api/listings/${listingId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user?.id || ''}`,
           'Accept': 'application/json',
-          'user': JSON.stringify({ id: user?.id, role: user?.role }) 
+          'user': JSON.stringify({ id: user?.id, role: user?.role })
         },
         body: JSON.stringify({ status: newStatus })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update listing status');
+        throw new Error(errorData.message || `Failed to update listing status (${response.status})`);
       }
 
-      // Update the listings state after successful status update
+      const updatedListing = await response.json();
+      
+      // Update the listings state with the new status
       setListings(listings.map(listing => 
-        listing._id === listingId ? { ...listing, status: newStatus } : listing
+        listing._id === listingId ? updatedListing : listing
       ));
+
     } catch (err) {
       console.error('Error updating status:', err);
       setError(err.message);
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
     }
-  };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="error-message">Error: {error}</div>;
-
-  const handleEdit = (listing) => {
-    setEditingListing(listing);
-    setEditFormData({
-      adTitle: listing.adTitle || listing.title,
-      brand: listing.brand,
-      model: listing.model,
-      price: listing.price
-    });
   };
 
   const handleDelete = async (listingId) => {
@@ -103,22 +119,20 @@ function ManageListings() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user?.id || ''}`,
+          'Accept': 'application/json',
           'user': JSON.stringify({ id: user?.id, role: user?.role })
         }
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `Failed to delete listing (Status: ${response.status})`);
-        } else {
-          throw new Error(`Server error: ${response.status}`);
-        }
+        throw new Error(data.message || `Failed to delete listing (Status: ${response.status})`);
       }
 
-      setListings(listings.filter(listing => listing._id !== listingId));
-      alert('Listing deleted successfully');
+      setListings(prevListings => prevListings.filter(listing => listing._id !== listingId));
+      setSuccessMessage('Listing deleted successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Delete error:', err);
       setError(`Failed to delete listing: ${err.message}`);
@@ -147,14 +161,22 @@ function ManageListings() {
         listing._id === editingListing._id ? { ...listing, ...updatedListing } : listing
       ));
       setEditingListing(null);
+      setSuccessMessage('Listing updated successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       setError(err.message);
+      setTimeout(() => setError(null), 3000);
     }
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="error-message">Error: {error}</div>;
 
   return (
     <div className="manage-listings">
       <h2>Manage Listings</h2>
+      {successMessage && <div className="success-message">{successMessage}</div>}
+      {error && <div className="error-message">Error: {error}</div>}
       {editingListing && (
         <div className="edit-form-overlay">
           <form onSubmit={handleEditSubmit} className="edit-form">
@@ -209,13 +231,13 @@ function ManageListings() {
               <tr key={listing._id}>
                 <td>
                   <img 
-                    src={`http://localhost:5002/uploads/${listing.imageUrl.split('/').pop().split('\\').pop()}`}
-                    alt={listing.title || listing.adTitle}
+                    src={getImageUrl(listing.imageUrl)}
+                    alt={listing.title || listing.adTitle || 'Car Image'}
                     className="listing-image"
                     onError={(e) => {
                       console.error('Image load error:', listing.imageUrl);
                       e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                      e.target.src = car1;
                     }}
                   />
                 </td>

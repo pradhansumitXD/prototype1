@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './navbar';
 import './ListingsPage.css';
 import car1 from '../assets/images/car1.jpg';
+import { getImageUrl } from '../utils/imageHelper';
 
 function ListingsPage() {
   const [listings, setListings] = useState([]);
@@ -39,12 +40,15 @@ function ListingsPage() {
           const filename = listing.imageUrl.split('/').pop().split('\\').pop();
           const imageUrl = `http://localhost:5002/uploads/${filename}`;
 
+          // Update the image URL handling
           return (
             <div key={listing._id} className="listing-card">
+              // Replace the image section in the listings.map
               <img 
-                src={imageUrl} 
-                alt={listing.adTitle}
+                src={getImageUrl(listing.imageUrl)}
+                alt={listing.adTitle || 'Car Image'}
                 onError={(e) => {
+                  console.error('Image load error:', listing.imageUrl);
                   e.target.onerror = null;
                   e.target.src = car1;
                 }}

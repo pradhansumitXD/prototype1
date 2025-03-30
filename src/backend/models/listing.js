@@ -16,7 +16,10 @@ const listingSchema = new mongoose.Schema({
   engine: { type: String, required: true },
   ownership: { type: String, required: true },
   price: { type: Number, required: true }, 
-  imageUrl: { type: String, required: true },
+  imageUrl: {
+    type: [String], // Changed to array of strings
+    required: true
+  },
   adTitle: { type: String, required: true },
   description: { type: String, required: true },
   status: { 

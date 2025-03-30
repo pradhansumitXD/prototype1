@@ -3,19 +3,19 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const Service = require('../models/serviceModels');  
+const Service = require('../models/serviceModels');
+const uploadsConfig = require('../config/uploadConfig');
 
 // Configure multer for image upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
+    cb(null, uploadsConfig.path);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    const fileExt = path.extname(file.originalname);
+    const fileName = path.basename(file.originalname, fileExt);
+    const timestamp = Date.now();
+    cb(null, `${timestamp}-${fileName}${fileExt}`);
   }
 });
 
@@ -73,7 +73,7 @@ router.put('/update/:id', upload.single('image'), async (req, res) => {
       // Delete old image if it exists
       const oldService = await Service.findById(req.params.id);
       if (oldService && oldService.imageUrl) {
-        const oldImagePath = path.join(__dirname, '../uploads', oldService.imageUrl);
+        const oldImagePath = path.join(uploadsConfig.path, oldService.imageUrl);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
