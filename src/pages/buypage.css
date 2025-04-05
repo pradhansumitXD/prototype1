@@ -1,14 +1,14 @@
 .buy-section {
   display: flex;
-  justify-content: flex-start;  /* Changed from space-between to flex-start */
-  gap: 20px;  /* Increased gap from 20px to 30px for better spacing */
+  justify-content: flex-start;  
+  gap: 20px;  
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .left-column {
-  width: 45%;  /* Increased from 30% to 35% */
+  width: 45%;  
   padding: 20px;
   margin-left: -50px;
   background-color: #ffffff;
@@ -78,7 +78,7 @@
 }
 
 .filter-actions {
-  margin-top: -10px;  /* Changed from 20px to -10px to move up */
+  margin-top: -10px;  
 }
 
 .reset-btn {
@@ -91,7 +91,7 @@
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: -15px;  /* Added small top margin for spacing */
+  margin-top: -15px; 
 }
 
 .reset-btn:hover {
@@ -184,7 +184,6 @@
   background-color: #333333;
 }
 
-/* Modal Styles */
 .preview-modal {
   position: fixed;
   top: 0;
@@ -207,12 +206,12 @@
   overflow-y: auto;
   border-radius: 12px;
   position: relative;
-  padding: 40px;  /* Increased padding */
+  padding: 40px;  
 }
 
 .preview-image-container {
   position: relative;
-  width: 58%;  /* Adjusted for better balance */
+  width: 58%;  
   height: 65vh;
   background: #f8f8f8;
   border-radius: 12px;
@@ -226,7 +225,7 @@
 
 .image-wrapper {
   position: relative;
-  width: 850px;  /* Adjusted width */
+  width: 850px;  
   min-width: 600px;
   height: 550px;
   min-height: 450px;
@@ -234,15 +233,15 @@
   justify-content: flex-start;
   align-items: flex-start;
   padding: 20px;
-  margin-left: -350px;  /* Adjusted margin */
+  margin-left: -350px;  
   transform: translateX(-20px) translateY(-30px);
   margin-top: -150px;
 }
 
 .preview-details {
-  width: 38%;  /* Adjusted width */
+  width: 38%;  
   float: right;
-  padding: 0 25px;  /* Increased padding */
+  padding: 0 25px;  
   margin-top: 10px;
 }
 
@@ -250,7 +249,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
-  margin: 35px 0;  /* Adjusted margin */
+  margin: 35px 0;  
   padding-top: 25px;
 }
 
@@ -263,7 +262,6 @@
   padding-left: 8px;
 }
 
-/* Add price styling */
 .preview-details .price {
   font-size: 24px;
   color: #2ecc71;
@@ -278,9 +276,9 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
-  margin: 15px 0;  /* Reduced from 35px to 15px */
-  padding-top: 0;  /* Removed padding-top */
-  margin-top: 10px;  /* Added negative margin to move specs up */
+  margin: 15px 0;  
+  padding-top: 0;  
+  margin-top: 10px;  
 }
 
 .spec-item {
@@ -296,7 +294,7 @@
 
 .image-counter {
   position: absolute;
-  bottom: -50px;
+  bottom: -80px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.7);
@@ -307,7 +305,6 @@
   z-index: 3;
 }
 
-/* Add clearfix to prevent layout issues */
 .preview-content::after {
   content: "";
   display: table;
@@ -316,7 +313,7 @@
 
 .description {
   margin-top: 15px;
-  max-height: 20vh;  /* Limit description height */
+  max-height: 20vh;  
   overflow-y: auto;
 }
 
@@ -368,7 +365,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1100; /* Higher than preview-modal */
+  z-index: 1100; 
 }
 
 .seller-modal-content {
@@ -413,11 +410,11 @@
   }
 
   .car-listing img {
-    height: 220px; /* Slightly smaller on mobile */
+    height: 220px; 
   }
   
   .preview-image-container {
-    height: 350px; /* Adjusted for mobile */
+    height: 350px; 
   }
 
 
@@ -443,7 +440,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(159, 154, 154, 0.4);  /* Reduced opacity from 0.7 to 0.4 */
+  background: rgba(159, 154, 154, 0.4);  
   color: white;
   border: none;
   width: 45px;
@@ -459,17 +456,17 @@
 }
 
 .nav-btn:hover {
-  background: rgba(0, 0, 0, 0.6);  /* Reduced hover opacity from 0.9 to 0.6 */
+  background: rgba(0, 0, 0, 0.6);  
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);  /* Reduced shadow opacity */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);  
 }
 
 .nav-btn.prev {
-  left: 10px;
+  left: -5px;
 }
 
 .nav-btn.next {
-  right: 0px;
+  right: -15px;
 }
 
 .nav-btn:active {

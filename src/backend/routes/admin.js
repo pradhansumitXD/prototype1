@@ -17,7 +17,7 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// Get all users (Admin Only)
+// Get all users 
 router.get("/users", isAdmin, async (req, res) => {
   try {
     const users = await User.find({}, "-password");
@@ -28,7 +28,7 @@ router.get("/users", isAdmin, async (req, res) => {
   }
 });
 
-// Update user details (Admin Only)
+// Update user details 
  router.put("/users/:id", isAdmin, async (req, res) => {
   try {
     const updates = req.body;
@@ -52,7 +52,7 @@ router.get("/users", isAdmin, async (req, res) => {
   }
 });
 
-// Delete a user (Admin Only)
+// Delete a user 
 router.delete("/users/:id", isAdmin, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -63,7 +63,7 @@ router.delete("/users/:id", isAdmin, async (req, res) => {
   }
 });
 
-// Add this route to handle admin listings
+// route to handle admin listings
 router.get('/listings', isAdmin, async (req, res) => {
   try {
     const listings = await Listing.find().sort({ createdAt: -1 });

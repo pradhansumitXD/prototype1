@@ -11,6 +11,9 @@ import CarService from './pages/carservice';
 import AdminDashboard from './pages/AdminDashboard';  
 import ManageUsers from './pages/ManageUsers';
 import ManageServices from './pages/ManageServices';
+import AdminSettings from './pages/AdminSettings';
+import ManageListings from './pages/ManageListings';
+import AdminUserCreate from './pages/AdminUserCreate';  
 
 const ProtectedRoute = ({ element, redirectTo, condition }) => {
   return condition ? element : <Navigate to={redirectTo} replace />;
@@ -24,7 +27,7 @@ function App() {
   return (
     <div className="App">
       <Routes>
-=        <Route path="/" element={<LandingPage />} /> 
+        <Route path="/" element={<LandingPage />} /> 
         <Route path="/profile" element={<Profile />} /> 
         <Route path="/login" element={<Login />} />    
         <Route path="/signup" element={<Signup />} />  
@@ -33,43 +36,16 @@ function App() {
         <Route path="/compare" element={<CompareCar />} /> 
         <Route path="/service" element={<CarService />} />  
 
-        {/* Admin Routes (Protected) */}
-        <Route 
-          path="/admin" 
-          element={<Navigate to="/admin-dashboard" replace />} 
-        />
-        <Route 
-          path="/admin-dashboard/*" 
-          element={
-            <ProtectedRoute 
-              element={<AdminDashboard />} 
-              redirectTo="/" 
-              condition={isAdmin} 
-            />
-          }
-        />  
-        <Route 
-          path="/admin-dashboard/users" 
-          element={
-            <ProtectedRoute 
-              element={<ManageUsers />} 
-              redirectTo="/" 
-              condition={isAdmin} 
-            />
-          }
-        />  
-        
-        <Route 
-          path="/admin-dashboard/services" 
-          element={
-            <ProtectedRoute 
-              element={<ManageServices />} 
-              redirectTo="/" 
-              condition={isAdmin} 
-            />
-          }
-        />
-        
+        <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
+        <Route path="/admin-dashboard/*" element={
+          <ProtectedRoute element={<AdminDashboard />} redirectTo="/" condition={isAdmin} />
+        }>
+          <Route path="users" element={<ManageUsers />} />
+          <Route path="listings" element={<ManageListings />} />
+          <Route path="services" element={<ManageServices />} />
+          <Route path="create-admin" element={<AdminUserCreate />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
       </Routes>
     </div>
   );

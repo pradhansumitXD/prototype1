@@ -87,7 +87,6 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
   const [showSellerDetails, setShowSellerDetails] = useState(false);
   const [sellerInfo, setSellerInfo] = useState(null);
 
-  // Define images array from listing.imageUrl
   const images = Array.isArray(listing.imageUrl) 
     ? listing.imageUrl 
     : listing.imageUrl 
@@ -134,7 +133,6 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
     setCurrentImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
   };
 
-  // In PreviewModal component
   return (
     <div className="preview-modal" onClick={onClose}>
       <div className="preview-content" onClick={e => e.stopPropagation()}>
@@ -150,7 +148,6 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
                   e.target.onerror = null;
                   e.target.src = car1;
                 }}
-                // Remove any inline styles if they exist
               />
             </div>
           </div>
@@ -212,7 +209,6 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
           </div>
         </div>
 
-        {/* Add seller modal */}
         {showSellerDetails && sellerInfo && (
           <div className="seller-modal" onClick={(e) => {
             e.stopPropagation();
@@ -232,12 +228,10 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
   );
 };
 
-// In CarListing component
 const CarListing = ({ listing, onPreview, fetchSellerDetails }) => {
   const [showSellerDetails, setShowSellerDetails] = useState(false);
   const [sellerInfo, setSellerInfo] = useState(null);
   
-  // Define handleViewSellerDetails before using it
   const handleViewSellerDetails = async () => {
     try {
       if (!listing.userId) throw new Error('No seller ID available');
@@ -254,18 +248,15 @@ const CarListing = ({ listing, onPreview, fetchSellerDetails }) => {
     try {
       if (!listing || !listing.imageUrl) return car1;
 
-      // Handle array of image URLs
       if (Array.isArray(listing.imageUrl)) {
         if (listing.imageUrl.length > 0 && listing.imageUrl[0]) {
           const imageUrl = listing.imageUrl[0].toString().trim();
-          // Check if the URL already contains '/uploads/'
           return imageUrl.startsWith('/uploads/') 
             ? `http://localhost:5002${imageUrl}`
             : `http://localhost:5002/uploads/${encodeURIComponent(imageUrl)}`;
         }
       }
 
-      // Handle single image URL
       if (typeof listing.imageUrl === 'string') {
         const imageUrl = listing.imageUrl.trim();
         return imageUrl.startsWith('/uploads/')

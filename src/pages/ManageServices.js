@@ -76,10 +76,9 @@ function ManageServices() {
     }
 
     try {
-      const userId = localStorage.getItem('userId');
-      const userRole = localStorage.getItem('userRole');
-
-      if (!userId || userRole !== 'admin') {
+      const user = JSON.parse(localStorage.getItem('user'));
+      
+      if (!user || user.role !== 'admin') {
         setError('Only administrators can add services');
         return;
       }
@@ -96,7 +95,7 @@ function ManageServices() {
       formData.append('serviceType', newService.serviceType);
       formData.append('location', newService.location);
       formData.append('contactNumber', newService.contactNumber);
-      formData.append('userId', userId);
+      formData.append('userId', user.id);  // Changed from userId to user.id
       formData.append('vendorName', newService.vendorName.trim());
 
       const response = await fetch('http://localhost:5002/api/services/create', {

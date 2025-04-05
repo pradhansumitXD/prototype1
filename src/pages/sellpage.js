@@ -22,15 +22,13 @@ function SellPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Add this to your state declarations at the top
   const [successMessage, setSuccessMessage] = useState(null);
   
-  // Modify the handleSubmit function's success handling
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccessMessage(null); // Reset success message
+    setSuccessMessage(null); 
   
     try {
       const userString = localStorage.getItem('user');
@@ -46,12 +44,10 @@ function SellPage() {
 
       const formData = new FormData();
       
-      // Add each image individually
       carDetails.images.forEach((image) => {
-        formData.append('images', image); // Changed from 'images[]' to 'images'
+        formData.append('images', image); 
       });
 
-      // Add all other fields
       formData.append('userId', user.id);
       formData.append('brand', carDetails.brand);
       formData.append('model', carDetails.model);
@@ -79,7 +75,6 @@ function SellPage() {
       const data = await response.json();
       setSuccessMessage('Listing created successfully! Redirecting to home page...');
       
-      // Reset form
       setCarDetails({
         brand: "",
         model: "",
@@ -96,9 +91,8 @@ function SellPage() {
         images: [],
       });
       
-      // Delay redirect to show success message and redirect to landing page
       setTimeout(() => {
-        window.location.href = '/';  // Changed from '/buy' to '/'
+        window.location.href = '/';  
       }, 2000);
   
     } catch (err) {
@@ -140,7 +134,6 @@ function SellPage() {
     }));
   };
 
-  // Add this in the JSX, right after the <h1> element
   return (
     <>
       <Navbar />

@@ -20,7 +20,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 // Create new listing
-// Update the create route
 router.post('/create', upload.array('images', 5), async (req, res) => {
   try {
     const imageUrls = req.files ? req.files.map(file => file.filename) : [];
@@ -39,7 +38,7 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
   }
 });
 // Get approved listings
-// Add this route to handle approved listings
+// route to handle approved listings
 router.get('/approved', async (req, res) => {
   try {
     const { brand, carType, minPrice, maxPrice, transmission, fuelType } = req.query;
@@ -57,7 +56,7 @@ router.get('/approved', async (req, res) => {
       if (maxPrice) filter.price.$lte = parseInt(maxPrice);
     }
 
-    console.log('Filter query:', filter); // Debug log
+    console.log('Filter query:', filter); 
 
     const approvedListings = await Listing.find(filter);
     res.json(approvedListings);
@@ -119,18 +118,22 @@ router.get('/all', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-// Add this delete endpoint before module.exports
+// Adding this delete endpoint before module.exports
 router.delete('/:id', async (req, res) => {
   try {
-    const user = JSON.parse(req.headers.user || '{}');
-    
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied. Admin only.' });
-    }
-
     const listing = await Listing.findById(req.params.id);
     if (!listing) {
       return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    // Parse user info from headers
+    const userInfo = JSON.parse(req.headers.user || '{}');
+    const isAdmin = userInfo.role === 'admin';
+    const isOwner = listing.userId.toString() === userInfo.id;
+
+    // Check if user is either admin or the listing owner
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Access denied. You can only delete your own listings.' });
     }
 
     // Delete associated image files from uploads directory
@@ -147,9 +150,90 @@ router.delete('/:id', async (req, res) => {
 
     // Delete the listing from database
     await Listing.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Listing and associated images deleted successfully' });
+    res.json({ message: 'Listing deleted successfully' });
   } catch (error) {
     console.error('Error deleting listing:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+// Add this route for user listings
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const userListings = await Listing.find({ userId: userId })
+      .sort({ createdAt: -1 }); // Sort by newest first
+    
+    res.json(userListings);
+  } catch (error) {
+    console.error('Server error fetching user listings:', error);
+    res.status(500).json({ message: 'Error fetching user listings' });
+  }
+});
+
+// Adding this update route before module.exports
+router.put('/:id', upload.array('images', 5), async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    // Parse user info and check permissions
+    const userInfo = JSON.parse(req.headers.user || '{}');
+    const isAdmin = userInfo.role === 'admin';
+    const isOwner = listing.userId.toString() === userInfo.id;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Access denied. You can only update your own listings.' });
+    }
+
+    // Handle images
+    let finalImageUrls = [];
+
+    // Keep existing images that weren't removed
+    if (req.body.currentImages) {
+      const currentImages = JSON.parse(req.body.currentImages);
+      finalImageUrls = [...currentImages];
+
+      // Delete removed images from storage
+      const removedImages = listing.imageUrl.filter(img => !currentImages.includes(img));
+      removedImages.forEach(img => {
+        const imagePath = path.join(__dirname, '../../uploads', img);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      });
+    }
+
+    // Add new uploaded images
+    if (req.files && req.files.length > 0) {
+      const newImageUrls = req.files.map(file => file.filename);
+      finalImageUrls = [...finalImageUrls, ...newImageUrls];
+    }
+
+    // Update the listing with all data including images
+    const updatedData = {
+      ...req.body,
+      imageUrl: finalImageUrls,
+      userId: listing.userId 
+    };
+
+    delete updatedData.currentImages;
+    delete updatedData._id;
+
+    const updatedListing = await Listing.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      { new: true }
+    );
+
+    res.json(updatedListing);
+  } catch (error) {
+    console.error('Error updating listing:', error);
     res.status(500).json({ message: error.message });
   }
 });

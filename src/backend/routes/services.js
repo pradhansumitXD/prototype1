@@ -24,7 +24,7 @@ const upload = multer({ storage: storage });
 // Create new service
 router.post('/create', upload.single('image'), async (req, res) => {
   try {
-    console.log('Received data:', req.body); // Add logging
+    console.log('Received data:', req.body); 
     
     const service = new Service({
       userId: req.body.userId,

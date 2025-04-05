@@ -17,7 +17,7 @@ const listingSchema = new mongoose.Schema({
   ownership: { type: String, required: true },
   price: { type: Number, required: true }, 
   imageUrl: {
-    type: [String], // Changed to array of strings
+    type: [String], 
     required: true
   },
   adTitle: { type: String, required: true },

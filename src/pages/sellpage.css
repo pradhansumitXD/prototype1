@@ -65,15 +65,12 @@ body {
     margin-bottom: 20px;
 }
 
-/* Add specific styling for ad title */
-/* Ad title positioning */
 .form-group[name="adTitle"],
 .form-group:has(input[name="adTitle"]) {
     margin-top: -90px;
     margin-bottom: 25px;
 }
 
-/* Description positioning */
 .form-group:has(textarea[name="description"]) {
     margin-top: -90px;
     margin-bottom: 25px;

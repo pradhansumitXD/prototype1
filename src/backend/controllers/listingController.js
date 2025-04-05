@@ -1,4 +1,6 @@
 const Listing = require('../models/listing');
+const fs = require('fs');
+const path = require('path');
 
 // Create new listing
 const createListing = async (req, res) => {
@@ -54,9 +56,66 @@ const updateListingStatus = async (req, res) => {
   }
 };
 
+// Add this update listing function
+const updateListing = async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    // Handle images
+    let finalImageUrls = [];
+
+    // Keep existing images that weren't removed
+    if (req.body.currentImages) {
+      const currentImages = JSON.parse(req.body.currentImages);
+      finalImageUrls = [...currentImages];
+
+      // Delete removed images from storage
+      const removedImages = listing.imageUrl.filter(img => !currentImages.includes(img));
+      removedImages.forEach(img => {
+        const imagePath = path.join(__dirname, '../../uploads', img);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      });
+    }
+
+    // Add new uploaded images
+    if (req.files && req.files.length > 0) {
+      const newImageUrls = req.files.map(file => file.filename);
+      finalImageUrls = [...finalImageUrls, ...newImageUrls];
+    }
+
+    // Update the listing with all data including images
+    const updatedData = {
+      ...req.body,
+      imageUrl: finalImageUrls
+    };
+
+    // Remove fields that shouldn't be updated
+    delete updatedData.currentImages;
+    delete updatedData._id;
+
+    const updatedListing = await Listing.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      { new: true }
+    );
+
+    res.json(updatedListing);
+  } catch (error) {
+    console.error('Update listing error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update the exports
 module.exports = {
   createListing,
   getAllListings,
   getApprovedListings,
-  updateListingStatus
+  updateListingStatus,
+  updateListing
 };

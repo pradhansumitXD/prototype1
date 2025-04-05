@@ -5,6 +5,8 @@ import ManageUsers from './ManageUsers';
 import ManageListings from './ManageListings';
 import ManageServices from './ManageServices';
 import AdminUserCreate from './AdminUserCreate';
+import AdminSettings from './AdminSettings';
+import { Outlet } from 'react-router-dom';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -70,7 +72,7 @@ function AdminDashboard() {
             </Link>
           </li>
           <li>
-            <Link to="/admin-dashboard/manageusers" className={isActive("/admin-dashboard/manageusers")}>
+            <Link to="/admin-dashboard/users" className={isActive("/admin-dashboard/users")}>
               Manage Users
             </Link>
           </li>
@@ -80,13 +82,18 @@ function AdminDashboard() {
             </Link>
           </li>
           <li>
-            <Link to="/admin-dashboard/manageservices" className={isActive("/admin-dashboard/manageservices")}>
+            <Link to="/admin-dashboard/services" className={isActive("/admin-dashboard/services")}>
               Manage Services
             </Link>
           </li>
           <li>
             <Link to="/admin-dashboard/create-admin" className={isActive("/admin-dashboard/create-admin")}>
               Create Admin
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin-dashboard/settings" className={isActive("/admin-dashboard/settings")}>
+              Settings
             </Link>
           </li>
           <li className="logout-item">
@@ -99,33 +106,29 @@ function AdminDashboard() {
 
       <div className="main-content">
         <div className="content-wrapper">
-          <Routes>
-            <Route path="" element={
-              <div className="dashboard-welcome">
-                <h1>Welcome to the Admin Dashboard</h1>
-                <p>Use the sidebar to manage users, cars, listings, and view platform activities.</p>
-                
-                <div className="stats-container">
-                  <div className="stat-card">
-                    <h3>Total Users</h3>
-                    <p className="stat-number">{userStats.totalUsers}</p>
-                  </div>
-                  <div className="stat-card">
-                    <h3>Total Services</h3>
-                    <p className="stat-number">{userStats.totalServices}</p>
-                  </div>
-                  <div className="stat-card">
-                    <h3>Total Listings</h3>
-                    <p className="stat-number">{userStats.totalListings}</p>
-                  </div>
+          {location.pathname === '/admin-dashboard' ? (
+            <div className="dashboard-welcome">
+              <h1>Welcome to the Admin Dashboard</h1>
+              <p>Use the sidebar to manage users, cars, listings, and view platform activities.</p>
+              
+              <div className="stats-container">
+                <div className="stat-card">
+                  <h3>Total Users</h3>
+                  <p className="stat-number">{userStats.totalUsers}</p>
+                </div>
+                <div className="stat-card">
+                  <h3>Total Services</h3>
+                  <p className="stat-number">{userStats.totalServices}</p>
+                </div>
+                <div className="stat-card">
+                  <h3>Total Listings</h3>
+                  <p className="stat-number">{userStats.totalListings}</p>
                 </div>
               </div>
-            } />
-            <Route path="manageusers/*" element={<ManageUsers />} />
-            <Route path="listings/*" element={<ManageListings />} />
-            <Route path="manageservices/*" element={<ManageServices />} />
-            <Route path="create-admin" element={<AdminUserCreate />} />
-          </Routes>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </div>
       </div>
     </div>

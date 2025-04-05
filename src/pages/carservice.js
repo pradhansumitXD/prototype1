@@ -5,7 +5,6 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMapMarkerAlt, faPhone, faUser, faTools } from '@fortawesome/free-solid-svg-icons';
 
-// Add icons to library
 library.add(faMapMarkerAlt, faPhone, faUser, faTools);
 
 function CarService() {

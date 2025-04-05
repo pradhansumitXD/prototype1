@@ -17,8 +17,10 @@ function ManageUsers() {
         const response = await fetch('http://localhost:5002/api/admin/users', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': user.id,
-            'Role': user.role
+            'user': JSON.stringify({
+              id: user.id || user._id,
+              role: user.role
+            })
           }
         });
 
@@ -46,8 +48,10 @@ function ManageUsers() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': user.id,
-          'Role': user.role
+          'user': JSON.stringify({
+            id: user.id || user._id,
+            role: user.role
+          })
         }
       });
 
@@ -75,8 +79,10 @@ function ManageUsers() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': user.id,
-          'Role': user.role
+          'user': JSON.stringify({
+            id: user.id || user._id,
+            role: user.role
+          })
         },
         body: JSON.stringify({
           username: editUsername,
