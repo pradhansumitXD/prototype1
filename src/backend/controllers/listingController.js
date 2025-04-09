@@ -94,7 +94,6 @@ const updateListing = async (req, res) => {
       imageUrl: finalImageUrls
     };
 
-    // Remove fields that shouldn't be updated
     delete updatedData.currentImages;
     delete updatedData._id;
 
@@ -111,7 +110,6 @@ const updateListing = async (req, res) => {
   }
 };
 
-// Update the exports
 module.exports = {
   createListing,
   getAllListings,

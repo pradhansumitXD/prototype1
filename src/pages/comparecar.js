@@ -160,16 +160,6 @@ function CompareCar() {
                   <td>{car1Details?.drive || '-'}</td>
                   <td>{car2Details?.drive || '-'}</td>
                 </tr>
-                <tr>
-                  <td>Highway MPG</td>
-                  <td>{car1Details?.highway_mpg || '-'}</td>
-                  <td>{car2Details?.highway_mpg || '-'}</td>
-                </tr>
-                <tr>
-                  <td>City MPG</td>
-                  <td>{car1Details?.city_mpg || '-'}</td>
-                  <td>{car2Details?.city_mpg || '-'}</td>
-                </tr>
               </tbody>
             </table>
           </div>

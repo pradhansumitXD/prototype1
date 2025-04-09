@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import './ManageServices.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faSave, faTimes, faCog, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faSave, faTimes, faCog, faUpload, faCheckCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 
 function ManageServices() {
   const [services, setServices] = useState([]);
   const [editingService, setEditingService] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);  
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);  
+  
   const [newService, setNewService] = useState({
     title: '',
     description: '',
@@ -42,7 +46,6 @@ function ManageServices() {
     }
   };
 
-  // Add handleImageChange function
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -95,7 +98,7 @@ function ManageServices() {
       formData.append('serviceType', newService.serviceType);
       formData.append('location', newService.location);
       formData.append('contactNumber', newService.contactNumber);
-      formData.append('userId', user.id);  // Changed from userId to user.id
+      formData.append('userId', user.id);
       formData.append('vendorName', newService.vendorName.trim());
 
       const response = await fetch('http://localhost:5002/api/services/create', {
@@ -113,8 +116,8 @@ function ManageServices() {
       }
 
       const result = await response.json();
-      console.log('Success:', result);
-
+      setSuccessMessage('Service added successfully!');
+      setTimeout(() => setSuccessMessage(null), 3000); // Hide after 3 seconds
       await fetchServices();
       setNewService({
         title: '',
@@ -172,13 +175,17 @@ function ManageServices() {
     }
   };
 
-  // Update handleDelete function
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) return;
+    setServiceToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:5002/api/services/${id}`, {
+      const response = await fetch(`http://localhost:5002/api/services/${serviceToDelete}`, {
         method: 'DELETE',
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
@@ -190,73 +197,94 @@ function ManageServices() {
       }
 
       await fetchServices();
+      setShowDeleteModal(false);
+      setServiceToDelete(null);
+      setSuccessMessage('Service deleted successfully!');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  useEffect(() => {
-    fetchServices();
-  }, []);
-
   const handleEdit = (service) => {
     setEditingService({ ...service });
+    setSelectedImage(null);
   };
 
+  // Update the return statement where the messages are rendered
   return (
     <div className="manage-services">
       <h2><FontAwesomeIcon icon={faCog} /> Manage Services</h2>
-      {error && <div className="error-message">{error}</div>}
-      
+      <div className="messages-container">
+        {error && (
+          <div className="message error-message">
+            <FontAwesomeIcon icon={faExclamationCircle} />
+            <span>{error}</span>
+          </div>
+        )}
+        {successMessage && (
+          <div className="message success-message">
+            <FontAwesomeIcon icon={faCheckCircle} />
+            <span>{successMessage}</span>
+          </div>
+        )}
+      </div>
       <div className="add-service-form">
         <h3>Add New Service</h3>
         <div className="form-section">
           <h4>Service Details</h4>
-          <input
-            type="text"
-            placeholder="Vendor Name"
-            value={newService.vendorName}
-            onChange={(e) => setNewService({ ...newService, vendorName: e.target.value })}
-            className="edit-input"
-          />
-          <select
-            value={newService.serviceType}
-            onChange={(e) => setNewService({ ...newService, serviceType: e.target.value })}
-            className="edit-input"
-          >
-            <option value="Car Wash">Car Wash</option>
-            <option value="Car Repair">Car Repair</option>
-            <option value="Car Towing">Car Towing</option>
-            <option value="Car Inspection">Car Inspection</option>
-            <option value="Other">Other</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Service Title"
-            value={newService.title}
-            onChange={(e) => setNewService({ ...newService, title: e.target.value })}
-            className="edit-input"
-          />
+          <div className="vendor-inputs">
+            <input
+              type="text"
+              placeholder="Vendor Name"
+              value={newService.vendorName}
+              onChange={(e) => setNewService({ ...newService, vendorName: e.target.value })}
+              className="edit-input"
+              required
+            />
+            <select
+              value={newService.serviceType}
+              onChange={(e) => setNewService({ ...newService, serviceType: e.target.value })}
+              className="edit-input"
+            >
+              <option value="Car Wash">Car Wash</option>
+              <option value="Car Repair">Car Repair</option>
+              <option value="Car Towing">Car Towing</option>
+              <option value="Car Inspection">Car Inspection</option>
+              <option value="Other">Other</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Service Title"
+              value={newService.title}
+              onChange={(e) => setNewService({ ...newService, title: e.target.value })}
+              className="edit-input"
+              required
+            />
+          </div>
           <textarea
             placeholder="Service Description"
             value={newService.description}
             onChange={(e) => setNewService({ ...newService, description: e.target.value })}
             className="edit-textarea"
+            required
           />
-          <input
-            type="text"
-            placeholder="Location"
-            value={newService.location}
-            onChange={(e) => setNewService({ ...newService, location: e.target.value })}
-            className="edit-input"
-          />
-          <input
-            type="tel"
-            placeholder="Contact Number"
-            value={newService.contactNumber}
-            onChange={(e) => setNewService({ ...newService, contactNumber: e.target.value })}
-            className="edit-input"
-          />
+          <div className="vendor-inputs">
+            <input
+              type="text"
+              placeholder="Location"
+              value={newService.location}
+              onChange={(e) => setNewService({ ...newService, location: e.target.value })}
+              className="edit-input"
+            />
+            <input
+              type="tel"
+              placeholder="Contact Number"
+              value={newService.contactNumber}
+              onChange={(e) => setNewService({ ...newService, contactNumber: e.target.value })}
+              className="edit-input"
+            />
+          </div>
           <div className="image-upload">
             <label htmlFor="service-image" className="upload-btn">
               <FontAwesomeIcon icon={faUpload} /> Upload Image
@@ -267,6 +295,7 @@ function ManageServices() {
               accept="image/*"
               onChange={handleImageChange}
               style={{ display: 'none' }}
+              required
             />
             {newService.imageUrl && (
               <img src={newService.imageUrl} alt="Preview" className="image-preview" />
@@ -294,6 +323,7 @@ function ManageServices() {
                       vendorName: e.target.value
                     })}
                     className="edit-input"
+                    required
                   />
                   <select
                     value={editingService.serviceType}
@@ -317,6 +347,7 @@ function ManageServices() {
                       title: e.target.value
                     })}
                     className="edit-input"
+                    required
                   />
                   <textarea
                     value={editingService.description}
@@ -325,6 +356,7 @@ function ManageServices() {
                       description: e.target.value
                     })}
                     className="edit-textarea"
+                    required
                   />
                   <input
                     type="text"
@@ -357,6 +389,13 @@ function ManageServices() {
                       onChange={handleImageChange}
                       style={{ display: 'none' }}
                     />
+                    {editingService.imageUrl && (
+                      <img 
+                        src={editingService.imageUrl.includes('http') ? editingService.imageUrl : `http://localhost:5002/uploads/${editingService.imageUrl}`} 
+                        alt="Preview" 
+                        className="image-preview" 
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -374,6 +413,7 @@ function ManageServices() {
                 <img 
                   src={`http://localhost:5002/uploads/${service.imageUrl}`} 
                   alt={service.title} 
+                  className="service-image"
                 />
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
@@ -397,6 +437,29 @@ function ManageServices() {
           </div>
         ))}
       </div>
+
+      {showDeleteModal && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this service?</p>
+            <div className="delete-modal-buttons">
+              <button className="confirm-btn" onClick={confirmDelete}>
+                Delete
+              </button>
+              <button 
+                className="cancel-btn" 
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setServiceToDelete(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

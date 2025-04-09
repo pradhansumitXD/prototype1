@@ -38,7 +38,11 @@ function App() {
 
         <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
         <Route path="/admin-dashboard/*" element={
-          <ProtectedRoute element={<AdminDashboard />} redirectTo="/" condition={isAdmin} />
+          <ProtectedRoute 
+            element={<AdminDashboard />} 
+            redirectTo="/" 
+            condition={isAdmin} 
+          />
         }>
           <Route path="users" element={<ManageUsers />} />
           <Route path="listings" element={<ManageListings />} />

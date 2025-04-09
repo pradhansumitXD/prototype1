@@ -6,6 +6,7 @@ import { faEdit, faTrash, faSave, faTimes, faUsers } from '@fortawesome/free-sol
 function ManageUsers() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [editRole, setEditRole] = useState('');
   const [editUsername, setEditUsername] = useState('');
@@ -39,12 +40,21 @@ function ManageUsers() {
     fetchUsers();
   }, []);
 
-  const handleDelete = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+  // Add these new state variables at the top with other states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
+  // Update handleDelete function
+  const handleDelete = (userId) => {
+    setUserToDelete(userId);
+    setShowDeleteModal(true);
+  };
+
+  // Add confirmDelete function
+  const confirmDelete = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
-      const response = await fetch(`http://localhost:5002/api/admin/users/${userId}`, {
+      const response = await fetch(`http://localhost:5002/api/admin/users/${userToDelete}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +69,9 @@ function ManageUsers() {
         throw new Error('Failed to delete user');
       }
 
-      setUsers(users.filter(user => user._id !== userId));
+      setUsers(users.filter(user => user._id !== userToDelete));
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     } catch (err) {
       console.error('Error deleting user:', err);
       setError(err.message);
@@ -103,10 +115,12 @@ function ManageUsers() {
           : user
       ));
       setEditingUser(null);
-      setError(null);
+      setSuccessMessage('User updated successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error updating user:', err);
       setError(err.message || 'Failed to update user');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -118,6 +132,7 @@ function ManageUsers() {
     <div className="manage-users">
       <h2><FontAwesomeIcon icon={faUsers} /> Manage Users</h2>
       {error && <div className="error-message">{error}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
       <table className="users-table">
         <thead>
           <tr>
@@ -191,6 +206,22 @@ function ManageUsers() {
           ))}
         </tbody>
       </table>
+
+      {showDeleteModal && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+            <div className="delete-modal-buttons">
+              <button className="confirm-btn" onClick={confirmDelete}>Delete</button>
+              <button className="cancel-btn" onClick={() => {
+                setShowDeleteModal(false);
+                setUserToDelete(null);
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

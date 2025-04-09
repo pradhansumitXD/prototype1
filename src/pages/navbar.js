@@ -10,23 +10,37 @@ function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);  
   const navigate = useNavigate();
 
-  useEffect(() => {
-    checkLoginStatus();
-  }, []);
-
-  const checkLoginStatus = () => {
+  const checkLoginStatus = async () => {
     const user = localStorage.getItem("user");
     if (user) {
       try {
         const parsedUser = JSON.parse(user);
-        if (parsedUser && parsedUser.email) {
-          setIsLoggedIn(true);
+        if (parsedUser && parsedUser.id) {
+          const response = await fetch(`http://localhost:5002/api/users/${parsedUser.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            }
+          });
+
+          if (!response.ok) {
+            localStorage.removeItem("user");
+            setIsLoggedIn(false);
+            return;
+          }
+
+          const userData = await response.json();
+          if (userData && userData.email === parsedUser.email) {
+            setIsLoggedIn(true);
+          } else {
+            localStorage.removeItem("user");
+            setIsLoggedIn(false);
+          }
         } else {
-          localStorage.removeItem("user"); 
+          localStorage.removeItem("user");
           setIsLoggedIn(false);
         }
       } catch (error) {
-        console.error("Error parsing user data:", error);
+        console.error("Error checking login status:", error);
         localStorage.removeItem("user");
         setIsLoggedIn(false);
       }
@@ -34,6 +48,10 @@ function Navbar() {
       setIsLoggedIn(false);
     }
   };
+
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);

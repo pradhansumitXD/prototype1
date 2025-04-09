@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './navbar';
 import './profile.css';
 import car1 from '../assets/images/car1.jpg';
 import { FaTimes, FaPlus } from 'react-icons/fa';
+
 function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState({
@@ -20,6 +20,11 @@ function Profile() {
   const [loading, setLoading] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
   const [previewImages, setPreviewImages] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [listingToDelete, setListingToDelete] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     try {
       const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -52,8 +57,34 @@ function Profile() {
     }
   }, [navigate]);
 
-  const [successMessage, setSuccessMessage] = useState('');
-  
+  const fetchUserListings = async (userId) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`http://localhost:5002/api/listings/user/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setListings(data);
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+      setListings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -115,43 +146,24 @@ function Profile() {
       
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert(error.message || 'Failed to update profile');
+      setError(error.message || 'Failed to update profile');
+      // Add timeout to clear error after 3 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
     }
   };
-  const fetchUserListings = async (userId) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await fetch(`http://localhost:5002/api/listings/user/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setListings(data);
-    } catch (error) {
-      console.error('Error fetching listings:', error);
-      setListings([]);
-    } finally {
-      setLoading(false);
-    }
+
+  const handleDeleteListing = (listingId) => {
+    setListingToDelete(listingId);
+    setShowDeleteModal(true);
   };
-  const handleDeleteListing = async (listingId) => {
-    if (!window.confirm('Are you sure you want to delete this listing?')) return;
-  
+
+  const confirmDelete = async () => {
     try {
       const storedUser = JSON.parse(localStorage.getItem('user'));
       
-      const response = await fetch(`http://localhost:5002/api/listings/${listingId}`, {
+      const response = await fetch(`http://localhost:5002/api/listings/${listingToDelete}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -163,19 +175,28 @@ function Profile() {
           })
         }
       });
-  
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message);
       }
-  
-      setListings(prevListings => prevListings.filter(listing => listing._id !== listingId));
-      alert('Listing deleted successfully');
+
+      setListings(prevListings => prevListings.filter(listing => listing._id !== listingToDelete));
+      setSuccessMessage('Listing deleted successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Delete error:', err);
-      alert(`Failed to delete listing: ${err.message}`);
+      setError(err.message || 'Failed to delete listing');
+      // Add timeout to clear error after 3 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
+    } finally {
+      setShowDeleteModal(false);
+      setListingToDelete(null);
     }
   };
+
   const handleUpdateListing = async (e, listingId) => {
     e.preventDefault();
     try {
@@ -224,9 +245,14 @@ function Profile() {
       }, 3000);
     } catch (error) {
       console.error('Error updating listing:', error);
-      alert(error.message || 'Failed to update listing');
+      setError(error.message || 'Failed to update listing');
+      // Add timeout to clear error after 3 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
     }
   };
+
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     const currentImagesCount = editingListing.imageUrl 
@@ -249,6 +275,7 @@ function Profile() {
     setPreviewImages(prevImages => [...prevImages, ...newPreviewImages]);
     e.target.value = '';
   };
+
   const handleRemovePreview = (index) => {
     setPreviewImages(prevImages => {
       const newPreviews = [...prevImages];
@@ -257,9 +284,8 @@ function Profile() {
       return newPreviews;
     });
   };
+
   const handleRemoveCurrentImage = (index) => {
-    if (!window.confirm('Are you sure you want to remove this image?')) return;
-    
     const updatedListing = { ...editingListing };
     if (Array.isArray(updatedListing.imageUrl)) {
       updatedListing.imageUrl = updatedListing.imageUrl.filter((_, i) => i !== index);
@@ -268,6 +294,7 @@ function Profile() {
     }
     setEditingListing(updatedListing);
   };
+
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setEditingListing(prev => ({
@@ -275,6 +302,7 @@ function Profile() {
       [name]: value
     }));
   };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser(prevUser => ({
@@ -282,6 +310,7 @@ function Profile() {
       [name]: value,
     }));
   };
+
   const handleEditListing = (listing) => {
     setEditingListing({
       ...listing,
@@ -302,12 +331,18 @@ function Profile() {
     });
     setPreviewImages([]);
   };
+
   return (
     <div className="profile-container">
       <Navbar />
       {successMessage && (
         <div className="profile-success-message">
           {successMessage}
+        </div>
+      )}
+      {error && (
+        <div className="profile-error-message">
+          {error}
         </div>
       )}
       <div className="profile-page-container">
@@ -324,7 +359,6 @@ function Profile() {
           >
             My Listings
           </button>
-      
         </div>
         {activeTab === 'profile' ? (
           <div className="profile-form-container">
@@ -743,8 +777,25 @@ function Profile() {
           </div>
         )}
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this listing? This action cannot be undone.</p>
+            <div className="delete-modal-buttons">
+              <button className="confirm-btn" onClick={confirmDelete}>Delete</button>
+              <button className="cancel-btn" onClick={() => {
+                setShowDeleteModal(false);
+                setListingToDelete(null);
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-export default Profile;
 
+export default Profile;

@@ -8,6 +8,8 @@ function ManageListings() {
   const [loading, setLoading] = useState(true);
   const [editingListing, setEditingListing] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [listingToDelete, setListingToDelete] = useState(null);
   const [editFormData, setEditFormData] = useState({
     adTitle: '',
     brand: '',
@@ -109,12 +111,17 @@ function ManageListings() {
     }
   };
 
-  const handleDelete = async (listingId) => {
-    if (!window.confirm('Are you sure you want to delete this listing?')) return;
+  // Update the handleDelete function
+  const handleDelete = (listingId) => {
+    setListingToDelete(listingId);
+    setShowDeleteModal(true);
+  };
 
+  // Add the confirmDelete function
+  const confirmDelete = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
-      const response = await fetch(`http://localhost:5002/api/listings/${listingId}`, {
+      const response = await fetch(`http://localhost:5002/api/listings/${listingToDelete}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -130,9 +137,11 @@ function ManageListings() {
         throw new Error(data.message || `Failed to delete listing (Status: ${response.status})`);
       }
 
-      setListings(prevListings => prevListings.filter(listing => listing._id !== listingId));
+      setListings(prevListings => prevListings.filter(listing => listing._id !== listingToDelete));
       setSuccessMessage('Listing deleted successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
+      setShowDeleteModal(false);
+      setListingToDelete(null);
     } catch (err) {
       console.error('Delete error:', err);
       setError(`Failed to delete listing: ${err.message}`);
@@ -175,8 +184,25 @@ function ManageListings() {
   return (
     <div className="manage-listings">
       <h2>Manage Listings</h2>
+      {error && <div className="error-message">{error}</div>}
       {successMessage && <div className="success-message">{successMessage}</div>}
-      {error && <div className="error-message">Error: {error}</div>}
+      
+      {showDeleteModal && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this listing? This action cannot be undone.</p>
+            <div className="delete-modal-buttons">
+              <button className="confirm-btn" onClick={confirmDelete}>Delete</button>
+              <button className="cancel-btn" onClick={() => {
+                setShowDeleteModal(false);
+                setListingToDelete(null);
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {editingListing && (
         <div className="edit-form-overlay">
           <form onSubmit={handleEditSubmit} className="edit-form">

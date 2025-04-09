@@ -38,11 +38,12 @@ function AdminDashboard() {
       const data = await response.json();
       
       if (data.success) {
-        console.log('Received stats:', data);
+        // Destructure only the stats we want to use
+        const { totalUsers, totalServices, totalListings, timestamp } = data;
         setUserStats({
-          totalUsers: data.totalUsers || 0,
-          totalListings: data.totalListings || 0,
-          totalServices: data.totalServices || 0  
+          totalUsers: totalUsers || 0,
+          totalServices: totalServices || 0,
+          totalListings: totalListings || 0
         });
       } else {
         console.error('Failed to fetch stats:', data.message);
