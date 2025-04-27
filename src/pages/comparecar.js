@@ -170,3 +170,4 @@ function CompareCar() {
 }
 
 export default CompareCar;
+

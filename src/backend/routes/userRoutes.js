@@ -81,16 +81,12 @@ router.put('/:id', async (req, res) => {
 
     // If password change is requested
     if (oldPassword && newPassword) {
-      try {
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
-        if (!isMatch) {
-          return res.status(401).json({ message: 'Current password is incorrect' });
-        }
-        user.password = await bcrypt.hash(newPassword, 12);
-      } catch (error) {
-        console.error('Password update error:', error);
-        return res.status(400).json({ message: 'Error updating password' });
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Current password is incorrect' });
       }
+      // Don't hash here, let the model middleware handle it
+      user.password = newPassword;
     }
 
     // Update other fields

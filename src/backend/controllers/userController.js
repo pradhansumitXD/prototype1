@@ -6,24 +6,26 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Log the login attempt (remove in production)
+    console.log('Login attempt:', { email, passwordLength: password?.length });
+
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required." });
+      return res.status(400).json({ message: "Email and password are required." });
     }
 
     const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
-      return res
-        .status(401)
-        .json({ message: "Invalid credentials. Please try again." });
+      console.log('User not found:', email);
+      return res.status(401).json({ message: "Invalid credentials. Please try again." });
     }
 
-    const isMatch = await bcrypt.compare(password.trim(), user.password);
+    // Log password comparison (remove in production)
+    console.log('Found user, comparing passwords');
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match result:', isMatch);
+
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ message: "Invalid credentials. Please try again." });
+      return res.status(401).json({ message: "Invalid credentials. Please try again." });
     }
 
     res.status(200).json({
@@ -74,11 +76,20 @@ const updateProfile = async (req, res) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const { username, email, phone } = req.body;
+    const { username, email, phone, oldPassword, newPassword } = req.body;
     const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Handle password change if provided
+    if (oldPassword && newPassword) {
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+      user.password = newPassword; // Let the schema middleware handle hashing
     }
 
     if (username) user.username = username.trim();
@@ -143,15 +154,12 @@ const registerUser = async (req, res) => {
       return res.status(409).json({ message: "Email already in use. Please log in." });
     }
 
-    console.log('Hashing password...');
-    const hashedPassword = await bcrypt.hash(password.trim(), 12);
-
-    console.log('Creating new user object...');
+    // Remove manual password hashing - let the schema middleware handle it
     const newUser = new User({
       username: username.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
-      password: hashedPassword,
+      password: password.trim(), // Just pass the raw password
       role: role?.trim() || "user",
     });
 

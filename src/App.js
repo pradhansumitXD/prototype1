@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom'; 
 import LandingPage from './pages/landingpage';  
 import Profile from './pages/profile'; 
@@ -14,15 +14,26 @@ import ManageServices from './pages/ManageServices';
 import AdminSettings from './pages/AdminSettings';
 import ManageListings from './pages/ManageListings';
 import AdminUserCreate from './pages/AdminUserCreate';  
+import EmailVerification from './pages/EmailVerification';  // Add this import
 
 const ProtectedRoute = ({ element, redirectTo, condition }) => {
   return condition ? element : <Navigate to={redirectTo} replace />;
 };
 
+// Move this into the App component and add proper checks
 function App() {
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
-  const isAdmin = user?.role === 'admin'; 
+  const [user, setUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      localStorage.removeItem('user'); // Clear invalid data
+      return null;
+    }
+  });
+
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="App">
@@ -50,6 +61,8 @@ function App() {
           <Route path="create-admin" element={<AdminUserCreate />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
+        // Add this route in your React Router setup
+        <Route path="/verify-email/:token" element={<EmailVerification />} />
       </Routes>
     </div>
   );

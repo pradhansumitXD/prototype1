@@ -18,13 +18,13 @@
 .hero h1 {
   font-size: 3.5rem;
   margin-bottom: 20px;
-  color: #000000;  /* Changed to black */
+  color: #000000;  
 }
 
 .hero p {
   font-size: 1.5rem;
   margin-bottom: 30px;
-  color: #666666;  /* Changed to dark gray */
+  color: #666666;  
 }
 
 .hero-buttons {

@@ -14,6 +14,7 @@ function Profile() {
     oldPassword: '',
     confirmPassword: '',
     mobile: '',
+    _id: ''  // Add this
   });
   const [listings, setListings] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
@@ -88,69 +89,74 @@ function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (user.password) {
+      // Validate password change requirements
+      if (user.password || user.oldPassword) {
         if (!user.oldPassword) {
           throw new Error('Please enter your current password');
+        }
+        if (!user.password) {
+          throw new Error('Please enter a new password');
         }
         if (user.password !== user.confirmPassword) {
           throw new Error('New passwords do not match');
         }
+        if (user.password.length < 6) {
+          throw new Error('New password must be at least 6 characters long');
+        }
       }
 
       const token = localStorage.getItem('token');
+      const updateData = {
+        username: user.username,
+        phone: user.mobile
+      };
+
+      // Only include password fields if changing password
+      if (user.password && user.oldPassword) {
+        updateData.oldPassword = user.oldPassword;
+        updateData.newPassword = user.password;
+      }
+
       const response = await fetch(`http://localhost:5002/api/users/${user._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'user': JSON.stringify({
-            id: user._id,
-            role: JSON.parse(localStorage.getItem('user')).role
-          })
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          username: user.username,
-          phone: user.mobile,
-          ...(user.password && {
-            oldPassword: user.oldPassword,
-            newPassword: user.password
-          })
-        }),
+        body: JSON.stringify(updateData),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update profile');
+        throw new Error(data.message || 'Failed to update profile');
       }
+
+      // Update local storage with new user data
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      localStorage.setItem('user', JSON.stringify({
+        ...storedUser,
+        username: data.username,
+        phone: data.phone
+      }));
       
-      const updatedUser = await response.json();
-      
-      const currentUser = JSON.parse(localStorage.getItem('user'));
-      const updatedUserData = {
-        ...currentUser,
-        username: updatedUser.username,
-        phone: updatedUser.phone
-      };
-      localStorage.setItem('user', JSON.stringify(updatedUserData));
-      
+      // Clear password fields after successful update
       setUser(prev => ({
         ...prev,
-        username: updatedUser.username,
-        mobile: updatedUser.phone
+        password: '',
+        oldPassword: '',
+        confirmPassword: '',
+        username: data.username,
+        mobile: data.phone
       }));
       
       setSuccessMessage('Profile updated successfully!');
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
+      setTimeout(() => setSuccessMessage(''), 3000);
       
     } catch (error) {
       console.error('Error updating profile:', error);
       setError(error.message || 'Failed to update profile');
-      // Add timeout to clear error after 3 seconds
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
+      setTimeout(() => setError(null), 3000);
     }
   };
 
