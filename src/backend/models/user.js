@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// Add these fields to your schema
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    minlength: 2,
+    maxlength: 50
   },
   email: {
     type: String,
@@ -38,23 +39,32 @@ const userSchema = new mongoose.Schema({
   verificationToken: String
 });
 
-// Hash password before saving
+// Add pre-save middleware for username
 userSchema.pre('save', async function(next) {
   try {
-    // Only hash the password if it has been modified or is new
-    if (!this.isModified('password')) {
-      return next();
+    // Handle username modifications
+    if (this.isModified('username')) {
+      this.username = this.username.trim();
     }
 
-    // Generate salt
-    const salt = await bcrypt.genSalt(12);
-    
-    // Hash password
-    this.password = await bcrypt.hash(this.password, salt);
+    // Handle password modifications
+    if (this.isModified('password')) {
+      const salt = await bcrypt.genSalt(12);
+      this.password = await bcrypt.hash(this.password, salt);
+    }
     next();
   } catch (error) {
     next(error);
   }
+});
+
+// Add middleware for findOneAndUpdate
+userSchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate();
+  if (update.username) {
+    update.username = update.username.trim();
+  }
+  next();
 });
 
 // Method to check password validity

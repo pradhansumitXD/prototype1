@@ -38,7 +38,6 @@ function AdminDashboard() {
       const data = await response.json();
       
       if (data.success) {
-        // Destructure only the stats we want to use
         const { totalUsers, totalServices, totalListings, timestamp } = data;
         setUserStats({
           totalUsers: totalUsers || 0,

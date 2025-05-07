@@ -40,7 +40,6 @@ function Signup({ closeModal }) {
         localStorage.setItem('userName', signupName);
         setSuccessMessage('Account verified successfully! You can now login.');
         
-        // Clear success message after 2 seconds
         setTimeout(() => {
           setSuccessMessage('');
         }, 2000);
@@ -62,7 +61,6 @@ function Signup({ closeModal }) {
       console.error('Verification error:', error.response?.data || error);
       setErrorMessage(error.response?.data?.message || 'Verification failed. Please try again.');
       setSuccessMessage('');
-      // Clear error message after 2 seconds
       setTimeout(() => {
         setErrorMessage('');
       }, 2000);
@@ -121,28 +119,11 @@ function Signup({ closeModal }) {
         })
       });
 
-      // Log response for debugging
       const data = await response.json();
       console.log('Registration response:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
-      }
-
-      // Send verification code separately if registration is successful
-      const verificationResponse = await fetch('http://localhost:5002/api/auth/send-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: signupEmail.trim().toLowerCase(),
-          adminEmail: 'pradhansumit957@gmail.com'
-        })
-      });
-
-      if (!verificationResponse.ok) {
-        throw new Error('Failed to send verification code');
       }
 
       setSuccessMessage('Verification code has been sent to admin. Please contact admin for the code.');

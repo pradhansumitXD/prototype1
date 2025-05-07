@@ -27,6 +27,22 @@ const listingSchema = new mongoose.Schema({
     default: 'pending',
     enum: ['pending', 'approved', 'rejected']
   },
+  interests: [{
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   createdAt: { 
     type: Date, 
     default: Date.now 

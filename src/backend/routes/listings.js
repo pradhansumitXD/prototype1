@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const Listing = require('../models/listing');
 const uploadsConfig = require('../config/uploadConfig');
+const auth = require('../middleware/auth'); 
 
 // Update storage configuration
 const storage = multer.diskStorage({
@@ -118,7 +119,7 @@ router.get('/all', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-// Adding this delete endpoint before module.exports
+
 router.delete('/:id', async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
@@ -126,17 +127,6 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Parse user info from headers
-    const userInfo = JSON.parse(req.headers.user || '{}');
-    const isAdmin = userInfo.role === 'admin';
-    const isOwner = listing.userId.toString() === userInfo.id;
-
-    // Check if user is either admin or the listing owner
-    if (!isAdmin && !isOwner) {
-      return res.status(403).json({ message: 'Access denied. You can only delete your own listings.' });
-    }
-
-    // Delete associated image files from uploads directory
     if (listing.imageUrl) {
       const images = Array.isArray(listing.imageUrl) ? listing.imageUrl : [listing.imageUrl];
       images.forEach(image => {
@@ -148,7 +138,6 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    // Delete the listing from database
     await Listing.findByIdAndDelete(req.params.id);
     res.json({ message: 'Listing deleted successfully' });
   } catch (error) {
@@ -156,7 +145,6 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-// Add this route for user listings
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -174,7 +162,6 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
-// Adding this update route before module.exports
 router.put('/:id', upload.array('images', 5), async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
@@ -182,27 +169,17 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Parse user info and check permissions
-    const userInfo = JSON.parse(req.headers.user || '{}');
-    const isAdmin = userInfo.role === 'admin';
-    const isOwner = listing.userId.toString() === userInfo.id;
-
-    if (!isAdmin && !isOwner) {
-      return res.status(403).json({ message: 'Access denied. You can only update your own listings.' });
-    }
-
-    // Handle images
     let finalImageUrls = [];
 
-    // Keep existing images that weren't removed
+    // Handle current images
     if (req.body.currentImages) {
       const currentImages = JSON.parse(req.body.currentImages);
       finalImageUrls = [...currentImages];
 
-      // Delete removed images from storage
+      // Remove images that are no longer needed
       const removedImages = listing.imageUrl.filter(img => !currentImages.includes(img));
       removedImages.forEach(img => {
-        const imagePath = path.join(__dirname, '../../uploads', img);
+        const imagePath = path.join(uploadsConfig.path, img);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
         }
@@ -215,7 +192,11 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
       finalImageUrls = [...finalImageUrls, ...newImageUrls];
     }
 
-    // Update the listing with all data including images
+    // Validate total number of images
+    if (finalImageUrls.length > 5) {
+      return res.status(400).json({ message: 'Maximum 5 images allowed' });
+    }
+
     const updatedData = {
       ...req.body,
       imageUrl: finalImageUrls,
@@ -238,4 +219,240 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
   }
 });
 
+// Reset interest status
+router.post('/:listingId/reset-interest', auth, async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const { buyerId } = req.body;
+
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    // Remove the interest record if it exists
+    if (listing.interests) {
+      listing.interests = listing.interests.filter(interest => 
+        interest.buyerId.toString() !== buyerId.toString()
+      );
+      await listing.save();
+    }
+
+    res.json({ message: 'Interest status reset successfully' });
+  } catch (error) {
+    console.error('Error resetting interest:', error);
+    res.status(500).json({ message: 'Error resetting interest status' });  
+  }
+});
+router.get('/:listingId/check-interest/:buyerId', auth, async (req, res) => {
+  try {
+    const { listingId, buyerId } = req.params;
+    
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    const existingInterest = listing.interests?.find(interest => 
+      interest.buyerId.toString() === buyerId.toString()
+    );
+
+    res.json({ 
+      hasInterest: !!existingInterest,
+      status: existingInterest ? existingInterest.status : 'none'
+    });
+  } catch (error) {
+    console.error('Error checking interest:', error);
+    res.status(500).json({ message: 'Error checking interest status' });
+  }
+});
+
+router.post('/:listingId/create-interest', auth, async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const { buyerId, buyerName } = req.body;
+
+    const listing = await Listing.findById(listingId);
+    
+    // Check if listing exists and is active
+    if (!listing) {
+      return res.status(410).json({ 
+        message: 'This listing is no longer available',
+        status: 'deleted'
+      });
+    }
+
+    // Check if listing is still approved
+    if (listing.status !== 'approved') {
+      return res.status(400).json({ 
+        message: 'This listing is no longer active',
+        status: 'inactive'
+      });
+    }
+
+    // Check for existing interest
+    const existingInterest = listing.interests?.find(interest => 
+      interest.buyerId.toString() === buyerId.toString()
+    );
+
+    if (existingInterest) {
+      if (existingInterest.status === 'rejected') {
+        existingInterest.status = 'pending';
+        existingInterest.createdAt = new Date(); 
+        await listing.save();
+        return res.status(201).json({ 
+          message: 'Interest resubmitted successfully', 
+          status: 'pending' 
+        });
+      } else {
+        return res.status(409).json({ 
+          message: 'You have already shown interest in this listing',
+          status: existingInterest.status 
+        });
+      }
+    }
+
+    if (!listing.interests) {
+      listing.interests = [];
+    }
+
+    listing.interests.push({
+      buyerId,
+      buyerName, 
+      status: 'pending',
+      createdAt: new Date()
+    });
+
+    await listing.save();
+    res.status(201).json({ message: 'Interest created', status: 'pending' });
+
+  } catch (error) {
+    console.error('Error creating interest:', error);
+    res.status(500).json({ message: 'Error creating interest' });
+  }
+});
+router.get('/:listingId/interests', auth, async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.listingId);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    const sanitizedInterests = listing.interests.map(interest => ({
+      buyerId: interest.buyerId,
+      buyerName: interest.buyerName,
+      status: interest.status,
+      createdAt: interest.createdAt,
+      contactInfo: interest.status === 'accepted' ? {
+        email: interest.buyerEmail,
+        phone: interest.buyerPhone
+      } : null
+    }));
+
+    res.json(sanitizedInterests);
+  } catch (error) {
+    console.error('Error fetching interests:', error);
+    res.status(500).json({ message: 'Error fetching interests' });
+  }
+});
+// Route to reject interest
+router.post('/:id/reject-interest', auth, async (req, res) => {
+  try {
+    const { buyerId } = req.body;
+    const listingId = req.params.id;
+
+    console.log('Rejecting interest:', { listingId, buyerId }); 
+
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    if (!listing.interests) {
+      listing.interests = [];
+    }
+
+    const interestIndex = listing.interests.findIndex(
+      interest => interest.buyerId && interest.buyerId.toString() === buyerId.toString()
+    );
+
+    console.log('Interest index:', interestIndex); 
+    console.log('Current interests:', listing.interests); 
+    if (interestIndex === -1) {
+      return res.status(404).json({ message: 'Interest not found for this buyer' });
+    }
+
+    // Update the interest status to rejected
+    listing.interests[interestIndex].status = 'rejected';
+    listing.markModified('interests'); 
+    await listing.save();
+
+    res.json({ message: 'Interest rejected successfully' });
+  } catch (error) {
+    console.error('Error rejecting interest:', error);
+    res.status(500).json({ 
+      message: 'Error rejecting interest', 
+      error: error.message,
+      details: 'Check server logs for more information'
+    });
+  }
+});
+router.post('/:listingId/accept-interest', auth, async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const { buyerId, sellerInfo } = req.body;
+
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    const interest = listing.interests?.find(int => 
+      int.buyerId.toString() === buyerId.toString()
+    );
+
+    if (!interest) {
+      return res.status(404).json({ message: 'Interest not found' });
+    }
+
+    // Update interest with seller info and status
+    interest.status = 'accepted';
+    interest.sellerInfo = sellerInfo; 
+    interest.acceptedAt = new Date();
+
+    await listing.save();
+    res.json({ 
+      message: 'Interest accepted successfully',
+      status: 'accepted',
+      sellerInfo 
+    });
+  } catch (error) {
+    console.error('Error accepting interest:', error);
+    res.status(500).json({ message: 'Error accepting interest' });
+  }
+});
+
+router.get('/:listingId/check-interest/:buyerId', auth, async (req, res) => {
+  try {
+    const { listingId, buyerId } = req.params;
+    
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    const existingInterest = listing.interests?.find(interest => 
+      interest.buyerId.toString() === buyerId.toString()
+    );
+
+    res.json({ 
+      hasInterest: !!existingInterest,
+      status: existingInterest ? existingInterest.status : 'none',
+      sellerInfo: existingInterest?.status === 'accepted' ? existingInterest.sellerInfo : null
+    });
+  } catch (error) {
+    console.error('Error checking interest:', error);
+    res.status(500).json({ message: 'Error checking interest status' });
+  }
+});
 module.exports = router;

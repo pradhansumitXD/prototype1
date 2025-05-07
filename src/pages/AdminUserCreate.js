@@ -52,17 +52,20 @@ function AdminUserCreate() {
         return;
       }
 
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5002/api/auth/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           username: formData.username.trim(),
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone.trim(),
           password: formData.password,
-          role: 'admin'
+          role: 'admin',
+          skipEmailVerification: true  
         })
       });
 

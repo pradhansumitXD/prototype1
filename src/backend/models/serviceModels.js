@@ -38,7 +38,19 @@ const serviceSchema = new mongoose.Schema({
   },
   imageUrl: { 
     type: String, 
-    required: true 
+    required: true,
+    get: function(v) {
+      if (v && v.startsWith('data:image')) {
+        return v;
+      }
+      return v ? `/uploads/${v}` : null;
+    },
+    set: function(v) {
+      if (v && v.startsWith('data:image')) {
+        return v;
+      }
+      return v ? v.replace(/^\/uploads\//, '') : v;
+    }
   },
   createdAt: { 
     type: Date, 

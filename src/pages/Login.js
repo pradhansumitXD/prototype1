@@ -24,7 +24,9 @@ function Login({ closeModal }) {
         throw new Error("Email and password are required.");
       }
 
-      const response = await fetch('http://localhost:5002/api/auth/login', {
+      console.log('Attempting login with:', { email: loginEmail.trim().toLowerCase() }); 
+
+      const response = await fetch('http://localhost:5002/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,15 +38,17 @@ function Login({ closeModal }) {
       });
 
       const data = await response.json();
+      console.log('Login response:', data); 
 
       if (!response.ok) {
         throw new Error(data.message || "Invalid login credentials.");
       }
 
       localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", `Bearer ${data.token}`); 
+      
       setSuccessMessage("Login successful!");
       
-      // Clear success message after 2 seconds
       setTimeout(() => {
         setSuccessMessage('');
       }, 2000);
@@ -61,7 +65,6 @@ function Login({ closeModal }) {
       setLoginPassword("");
     } catch (error) {
       setErrorMessage(error.message || 'Login failed. Please try again.');
-      // Clear error message after 2 seconds
       setTimeout(() => {
         setErrorMessage('');
       }, 2000);
@@ -73,7 +76,8 @@ function Login({ closeModal }) {
   const handleForgotPassword = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5002/api/auth/forgot-password', {
+      
+      const response = await fetch('http://localhost:5002/api/users/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -116,7 +120,8 @@ function Login({ closeModal }) {
         throw new Error('Please enter a valid 6-digit reset code');
       }
 
-      const response = await fetch('http://localhost:5002/api/auth/reset-password', {
+      // Update the reset password endpoint
+      const response = await fetch('http://localhost:5002/api/users/reset-password', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

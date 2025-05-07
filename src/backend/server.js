@@ -10,6 +10,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const listingsRouter = require('./routes/listings');
 const servicesRouter = require('./routes/services');
 const uploadsConfig = require('./config/uploadConfig');
+const interestsRouter = require('./routes/interests');
+const notificationsRouter = require('./routes/notifications');
 
 const app = express();
 
@@ -45,6 +47,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes); 
 app.use('/api/listings', listingsRouter);
 app.use('/api/services', servicesRouter);
+app.use('/api/interests', interestsRouter);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -102,3 +105,6 @@ const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+// Add this with your other route registrations
+app.use('/api/notifications', notificationsRouter);

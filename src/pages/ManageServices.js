@@ -23,6 +23,10 @@ function ManageServices() {
     vendorName: ''
   });
 
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
   const fetchServices = async () => {
     try {
       const response = await fetch('http://localhost:5002/api/services/all', {
@@ -46,20 +50,26 @@ function ManageServices() {
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5000000) { 
+        setError('Image size should be less than 5MB');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
+        const imageData = reader.result;
         if (editingService) {
           setEditingService({
             ...editingService,
-            imageUrl: reader.result
+            imageUrl: imageData
           });
         } else {
           setNewService({
             ...newService,
-            imageUrl: reader.result
+            imageUrl: imageData
           });
         }
       };
@@ -67,10 +77,6 @@ function ManageServices() {
       setSelectedImage(file);
     }
   };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
 
   const handleAddService = async () => {
     if (!newService.title || !newService.description || !selectedImage || !newService.vendorName) {
@@ -94,12 +100,12 @@ function ManageServices() {
       
       formData.append('title', newService.title);
       formData.append('description', newService.description);
-      formData.append('image', selectedImage);
       formData.append('serviceType', newService.serviceType);
       formData.append('location', newService.location);
       formData.append('contactNumber', newService.contactNumber);
       formData.append('userId', user.id);
       formData.append('vendorName', newService.vendorName.trim());
+      formData.append('imageBase64', newService.imageUrl); 
 
       const response = await fetch('http://localhost:5002/api/services/create', {
         method: 'POST',
@@ -117,7 +123,7 @@ function ManageServices() {
 
       const result = await response.json();
       setSuccessMessage('Service added successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000); // Hide after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000); 
       await fetchServices();
       setNewService({
         title: '',
@@ -211,7 +217,6 @@ function ManageServices() {
     setSelectedImage(null);
   };
 
-  // Update the return statement where the messages are rendered
   return (
     <div className="manage-services">
       <h2><FontAwesomeIcon icon={faCog} /> Manage Services</h2>
@@ -391,9 +396,19 @@ function ManageServices() {
                     />
                     {editingService.imageUrl && (
                       <img 
-                        src={editingService.imageUrl.includes('http') ? editingService.imageUrl : `http://localhost:5002/uploads/${editingService.imageUrl}`} 
+                        src={editingService.imageUrl.startsWith('data:image') ? 
+                          editingService.imageUrl : 
+                          editingService.imageUrl.startsWith('http') ?
+                            editingService.imageUrl :
+                            `http://localhost:5002/uploads/${editingService.imageUrl}`
+                        } 
                         alt="Preview" 
-                        className="image-preview" 
+                        className="image-preview"
+                        onError={(e) => {
+                          console.error('Preview image load error:', editingService.imageUrl);
+                          e.target.onerror = null;
+                          e.target.src = 'default-service-image.jpg';
+                        }}
                       />
                     )}
                   </div>

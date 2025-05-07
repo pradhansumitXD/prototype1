@@ -2,7 +2,6 @@ const Listing = require('../models/listing');
 const fs = require('fs');
 const path = require('path');
 
-// Create new listing
 const createListing = async (req, res) => {
   try {
     const imageUrls = req.files ? req.files.map(file => file.filename) : [];
@@ -21,7 +20,6 @@ const createListing = async (req, res) => {
   }
 };
 
-// Get all listings
 const getAllListings = async (req, res) => {
   try {
     const listings = await Listing.find();
@@ -31,7 +29,6 @@ const getAllListings = async (req, res) => {
   }
 };
 
-// Get approved listings
 const getApprovedListings = async (req, res) => {
   try {
     const listings = await Listing.find({ status: 'approved' });
@@ -41,7 +38,6 @@ const getApprovedListings = async (req, res) => {
   }
 };
 
-// Update listing status
 const updateListingStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -56,7 +52,6 @@ const updateListingStatus = async (req, res) => {
   }
 };
 
-// Add this update listing function
 const updateListing = async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
@@ -64,15 +59,13 @@ const updateListing = async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Handle images
+    // Remove ownership check to allow any user to update
     let finalImageUrls = [];
 
-    // Keep existing images that weren't removed
     if (req.body.currentImages) {
       const currentImages = JSON.parse(req.body.currentImages);
       finalImageUrls = [...currentImages];
 
-      // Delete removed images from storage
       const removedImages = listing.imageUrl.filter(img => !currentImages.includes(img));
       removedImages.forEach(img => {
         const imagePath = path.join(__dirname, '../../uploads', img);
@@ -82,16 +75,16 @@ const updateListing = async (req, res) => {
       });
     }
 
-    // Add new uploaded images
     if (req.files && req.files.length > 0) {
       const newImageUrls = req.files.map(file => file.filename);
       finalImageUrls = [...finalImageUrls, ...newImageUrls];
     }
 
-    // Update the listing with all data including images
     const updatedData = {
       ...req.body,
-      imageUrl: finalImageUrls
+      imageUrl: finalImageUrls,
+      // Keep the original userId to maintain ownership
+      userId: listing.userId
     };
 
     delete updatedData.currentImages;
@@ -110,10 +103,77 @@ const updateListing = async (req, res) => {
   }
 };
 
+const deleteListing = async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    if (listing.imageUrl && listing.imageUrl.length > 0) {
+      listing.imageUrl.forEach(img => {
+        const imagePath = path.join(__dirname, '../../uploads', img);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      });
+    }
+
+    await Listing.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Listing deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getUserListings = async (req, res) => {
+  try {
+    const listings = await Listing.find({ userId: req.params.userId });
+    res.json(listings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const rejectInterest = async (req, res) => {
+  try {
+    const { buyerId } = req.body;
+    const listingId = req.params.id;
+
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    if (!listing.interests) {
+      listing.interests = [];
+    }
+
+    const interestIndex = listing.interests.findIndex(
+      interest => interest.buyerId.toString() === buyerId
+    );
+
+    if (interestIndex === -1) {
+      return res.status(404).json({ message: 'Interest not found' });
+    }
+
+    listing.interests[interestIndex].status = 'rejected';
+    await listing.save();
+
+    res.json({ message: 'Interest rejected successfully' });
+  } catch (error) {
+    console.error('Error rejecting interest:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createListing,
   getAllListings,
   getApprovedListings,
   updateListingStatus,
-  updateListing
+  updateListing,
+  deleteListing,
+  getUserListings,
+  rejectInterest
 };

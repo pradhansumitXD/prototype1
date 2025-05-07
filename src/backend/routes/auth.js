@@ -41,40 +41,39 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, password, phone } = req.body;
+    const { username, email, password, phone, role } = req.body;
     
+    // Check for existing user
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const tempUser = {
+    const user = new User({
       username,
       email: email.toLowerCase(),
-      password,
+      password, 
       phone,
-      verificationToken
-    };
-
-    req.app.locals.tempUsers = req.app.locals.tempUsers || {};
-    req.app.locals.tempUsers[verificationToken] = {
-      ...tempUser,
-      expires: Date.now() + 3600000 // 1 hour expiry
-    };
-
-    // Remove the email sending from here
-    res.status(200).json({
-      message: 'Please check your email to verify your account',
-      email: email.toLowerCase()
+      role: role || 'user',
+      isVerified: true
     });
-    
+
+    await user.save();
+
+    res.status(201).json({ 
+      message: 'User registered successfully',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        phone: user.phone
+      }
+    });
+
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ 
-      message: error.message || 'Error during registration'
-    });
+    res.status(500).json({ message: 'Error registering user', error: error.message });
   }
 });
 
@@ -117,7 +116,6 @@ router.get('/verify/:token', async (req, res) => {
 
     delete req.app.locals.tempUsers[token];
 
-    // Instead of redirect, send JSON response
     res.json({ 
       success: true,
       message: 'Email verified successfully. You can now login.',
@@ -241,7 +239,7 @@ router.post('/verify-otp', async (req, res) => {
     const user = new User({
       username: tempUser.username,
       email: tempUser.email.toLowerCase(),
-      password: tempUser.password, // Let the User model handle password hashing
+      password: tempUser.password, 
       phone: tempUser.phone,
       role: 'user',
       isVerified: true

@@ -24,6 +24,26 @@ function CarService() {
     }
   };
 
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return 'default-service-image.jpg';
+    
+    try {
+      if (imageUrl.startsWith('data:image')) {
+        return imageUrl;
+      }
+      
+      if (imageUrl.startsWith('http')) {
+        return imageUrl;
+      }
+
+      return `http://localhost:5002/uploads/${imageUrl}`;
+      
+    } catch (error) {
+      console.error('Error processing image URL:', error);
+      return 'default-service-image.jpg';
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -34,8 +54,13 @@ function CarService() {
           {services.map(service => (
             <div key={service._id} className="service-card">
               <img 
-                src={`http://localhost:5002/uploads/${service.imageUrl}`}
-                alt={service.title} 
+                src={getImageUrl(service.imageUrl)}
+                alt={service.title}
+                onError={(e) => {
+                  console.error('Image load error:', service.imageUrl);
+                  e.target.onerror = null;
+                  e.target.src = 'default-service-image.jpg';
+                }}
               />
               <div className="service-content">
                 <h2>{service.title}</h2>

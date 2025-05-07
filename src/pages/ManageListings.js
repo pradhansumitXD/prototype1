@@ -17,21 +17,17 @@ function ManageListings() {
     price: ''
   });
 
-  // Add this function
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return car1;
     
     try {
       if (Array.isArray(imageUrl)) {
-        // Handle array of image URLs
         if (imageUrl.length === 0) return car1;
         const firstImage = imageUrl[0];
-        // Remove any leading array brackets if they exist in the string
         const cleanImagePath = firstImage.replace(/[\[\]']/g, '').trim();
         return `http://localhost:5002/uploads/${cleanImagePath}`;
       }
 
-      // Handle single image URL
       const cleanImagePath = imageUrl.replace(/[\[\]']/g, '').trim();
       return `http://localhost:5002/uploads/${cleanImagePath}`;
     } catch (error) {
@@ -98,7 +94,6 @@ function ManageListings() {
 
       const updatedListing = await response.json();
       
-      // Update the listings state with the new status
       setListings(listings.map(listing => 
         listing._id === listingId ? updatedListing : listing
       ));
@@ -106,18 +101,15 @@ function ManageListings() {
     } catch (err) {
       console.error('Error updating status:', err);
       setError(err.message);
-      // Clear error after 3 seconds
       setTimeout(() => setError(null), 3000);
     }
   };
 
-  // Update the handleDelete function
   const handleDelete = (listingId) => {
     setListingToDelete(listingId);
     setShowDeleteModal(true);
   };
 
-  // Add the confirmDelete function
   const confirmDelete = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));

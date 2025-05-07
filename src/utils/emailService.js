@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 const sendVerificationEmail = async (adminEmail, verificationCode, userEmail, userData) => {
   const mailOptions = {
     from: 'pradhansumit957@gmail.com',
-    to: adminEmail, // Send only to admin
+    to: adminEmail, 
     subject: 'New User Verification Code - Gaadi Nest',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -86,7 +86,6 @@ const sendConfirmationEmail = async (adminEmail, userData) => {
   return transporter.sendMail(mailOptions);
 };
 
-// Add this after sendConfirmationEmail
 const sendPasswordResetEmail = async (adminEmail, resetCode, userEmail) => {
   const mailOptions = {
     from: 'pradhansumit957@gmail.com',
@@ -127,7 +126,6 @@ const sendPasswordResetEmail = async (adminEmail, resetCode, userEmail) => {
   return transporter.sendMail(mailOptions);
 };
 
-// Update the exports to include the new function
 module.exports = { 
   sendVerificationEmail, 
   sendConfirmationEmail,

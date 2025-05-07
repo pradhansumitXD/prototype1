@@ -3,6 +3,15 @@ import Navbar from './navbar';
 import './buypage.css'; 
 import car1 from '../assets/images/car1.jpg';
 
+const maskText = (text) => {
+  if (!text) return '';
+  const visibleStart = text.slice(0, 2);
+  const visibleEnd = text.slice(-2);
+  const maskedLength = text.length - 4;
+  const masked = '*'.repeat(maskedLength);
+  return `${visibleStart}${masked}${visibleEnd}`;
+};
+
 const FilterSection = ({ filters, handleFilterChange, handleSearch, resetFilters }) => {
   return (
     <div className="left-column">
@@ -217,9 +226,9 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
             <div className="seller-modal-content" onClick={e => e.stopPropagation()}>
               <button className="close-btn" onClick={() => setShowSellerDetails(false)}>×</button>
               <h3>Seller Information</h3>
-              <p><strong>Name:</strong> {sellerInfo.username}</p>
-              <p><strong>Email:</strong> {sellerInfo.email}</p>
-              <p><strong>Phone:</strong> {sellerInfo.phone}</p>
+              <p><strong>Name:</strong> {maskText(sellerInfo.username)}</p>
+              <p><strong>Email:</strong> {maskText(sellerInfo.email)}</p>
+              <p><strong>Phone:</strong> {maskText(sellerInfo.phone)}</p>
             </div>
           </div>
         )}
@@ -231,7 +240,9 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
 const CarListing = ({ listing, onPreview, fetchSellerDetails }) => {
   const [showSellerDetails, setShowSellerDetails] = useState(false);
   const [sellerInfo, setSellerInfo] = useState(null);
-  
+  const [interestStatus, setInterestStatus] = useState('none');
+  const [showNotification, setShowNotification] = useState(false);
+
   const handleViewSellerDetails = async () => {
     try {
       if (!listing.userId) throw new Error('No seller ID available');
@@ -243,7 +254,7 @@ const CarListing = ({ listing, onPreview, fetchSellerDetails }) => {
       alert('Could not fetch seller details. Please try again later.');
     }
   };
-  
+
   const getListingImage = (listing) => {
     try {
       if (!listing || !listing.imageUrl) return car1;
@@ -271,6 +282,105 @@ const CarListing = ({ listing, onPreview, fetchSellerDetails }) => {
     }
   };
 
+  const handleInterestClick = async (event) => {
+    event.preventDefault();
+    
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token');
+      
+      if (!storedUser || !token) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const buyerId = storedUser.id || storedUser._id;
+
+      if (buyerId === listing.userId) {
+        alert("You cannot show interest in your own listing");
+        return;
+      }
+
+      if (!listing._id || !buyerId || !listing.userId) {
+        console.error('Missing required data:', { 
+          listingId: listing._id, 
+          buyerId: buyerId, 
+          sellerId: listing.userId 
+        });
+        throw new Error('Missing required data for interest creation');
+      }
+
+      console.log('Sending interest request...');
+      const response = await fetch('http://localhost:5002/api/interests/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          listingId: listing._id,
+          buyerId: buyerId,
+          sellerId: listing.userId,
+          status: 'pending'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.status === 409) {
+        setInterestStatus('pending');
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      }
+
+      try {
+        const notificationResponse = await fetch('http://localhost:5002/api/notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            recipientId: listing.userId,
+            buyerId: buyerId,  // Add buyerId
+            message: `${storedUser.username} has shown interest in your listing: ${listing.adTitle}`,
+            type: 'interest',
+            listingId: listing._id,
+            status: 'pending'  // Add status
+          })
+        });
+      
+        const notificationData = await notificationResponse.json();
+        
+        if (!notificationResponse.ok) {
+          console.error('Failed to create notification:', notificationData);
+          // Log more details for debugging
+          console.log('Notification request details:', {
+            recipientId: listing.userId,
+            buyerId: buyerId,
+            listingId: listing._id,
+            type: 'interest'
+          });
+        }
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError);
+      }
+
+      setInterestStatus('pending');
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
+      
+    } catch (error) {
+      console.error('Error in handleInterestClick:', error);
+      alert(error.message || 'Failed to send interest. Please try again.');
+    }
+  };
+
   return (
     <div className="car-listing">
       <img 
@@ -294,17 +404,53 @@ const CarListing = ({ listing, onPreview, fetchSellerDetails }) => {
           <span>{listing.engine}</span>
         </div>
         <p>{listing.description}</p>
-        <button onClick={handleViewSellerDetails}>View Seller Details</button>
+        <div className="button-group">
+          <button onClick={handleViewSellerDetails}>View Seller Details</button>
+          <button 
+            onClick={handleInterestClick}
+            className={`interest-btn ${interestStatus}`}
+            disabled={interestStatus === 'pending'}
+            type="button" // Explicitly set the button type
+          >
+            {interestStatus === 'none' && 'Show Interest'}
+            {interestStatus === 'pending' && 'Interest Pending'}
+            {interestStatus === 'accepted' && 'Interest Accepted'}
+          </button>
+        </div>
       </div>
 
       {showSellerDetails && sellerInfo && (
-        <div className="seller-modal">
-          <div className="seller-modal-content">
+        <div className="seller-modal" onClick={() => setShowSellerDetails(false)}>
+          <div className="seller-modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Seller Details</h3>
+            <p>
+              <strong>Name: </strong>
+              <span className="masked-info">
+                {maskText(sellerInfo.username)}
+              </span>
+            </p>
+            <p>
+              <strong>Email: </strong>
+              <span className="masked-info">
+                {maskText(sellerInfo.email)}
+              </span>
+            </p>
+            <p>
+              <strong>Phone: </strong>
+              <span className="masked-info">
+                {maskText(sellerInfo.phone)}
+              </span>
+            </p>
             <button className="close-btn" onClick={() => setShowSellerDetails(false)}>×</button>
-            <h3>Seller Information</h3>
-            <p><strong>Name:</strong> {sellerInfo.username}</p>
-            <p><strong>Email:</strong> {sellerInfo.email}</p>
-            <p><strong>Phone:</strong> {sellerInfo.phone}</p>
+          </div>
+        </div>
+      )}
+
+      {showNotification && (
+        <div className="interest-success-popup">
+          <div className="interest-success-content">
+            <span className="success-icon">✓</span>
+            <p>Interest sent successfully!</p>
           </div>
         </div>
       )}
@@ -341,6 +487,8 @@ function BuyPage() {
   const fetchApprovedListings = async (filterParams) => {
     try {
       setLoading(true);
+      setError(null); // Reset any previous errors
+      
       let url = 'http://localhost:5002/api/listings/approved';
       
       if (filterParams) {
@@ -362,25 +510,27 @@ function BuyPage() {
           url += `?${queryString}`;
         }
       }
-
+  
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        timeout: 5000 
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const data = await response.json();
       setListings(data);
       setError(null);
     } catch (error) {
       console.error('Error fetching listings:', error);
-      setError('Failed to load listings. Please ensure the server is running.');
-      setListings([]);
+      setError('Failed to load listings. Please check your connection and try again.');
+      setListings([]); 
     } finally {
       setLoading(false);
     }

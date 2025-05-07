@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const { sendPasswordResetEmail } = require('../utils/emailService');
 
 
 const loginUser = async (req, res) => {
@@ -247,10 +248,82 @@ const updateUserByAdmin = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email, adminEmail } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date();
+    otpExpiry.setMinutes(otpExpiry.getMinutes() + 10);
+
+    // Save OTP to user
+    user.resetPasswordOtp = otp;
+    user.resetPasswordExpires = otpExpiry;
+    await user.save();
+
+    // Send email to admin
+    await sendPasswordResetEmail(adminEmail, otp, email);
+
+    res.json({
+      success: true,
+      message: 'Password reset code has been sent to admin'
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing request',
+      error: error.message
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      resetPasswordOtp: otp,
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset code' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password has been reset successfully'
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error resetting password',
+      error: error.message
+    });
+  }
+};
+
+// Add to module.exports
 module.exports = {
   loginUser,
   registerUser,
   getProfile,
   updateProfile,
-  updateUserByAdmin  
+  updateUserByAdmin,
+  forgotPassword,
+  resetPassword
 };

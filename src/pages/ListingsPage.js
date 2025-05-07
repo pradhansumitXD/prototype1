@@ -40,7 +40,6 @@ function ListingsPage() {
           const filename = listing.imageUrl.split('/').pop().split('\\').pop();
           const imageUrl = `http://localhost:5002/uploads/${filename}`;
 
-          // Update the image URL handling
           return (
             <div key={listing._id} className="listing-card">
               // Replace the image section in the listings.map

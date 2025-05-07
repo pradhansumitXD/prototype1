@@ -40,17 +40,14 @@ function ManageUsers() {
     fetchUsers();
   }, []);
 
-  // Add these new state variables at the top with other states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  // Update handleDelete function
   const handleDelete = (userId) => {
     setUserToDelete(userId);
     setShowDeleteModal(true);
   };
 
-  // Add confirmDelete function
   const confirmDelete = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));

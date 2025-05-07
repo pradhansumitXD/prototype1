@@ -390,6 +390,28 @@
   color: #666;
 }
 
+.seller-modal-content .masked-info {
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.seller-modal-content .masked-info::before {
+  content: attr(data-masked);
+}
+
+.seller-modal-content .reveal-btn {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.seller-modal-content .reveal-btn:hover {
+  background: #e0e0e0;
+}
 .seller-modal-content strong {
   color: #333;
   margin-right: 10px;
@@ -476,4 +498,81 @@
 .nav-btn:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(240, 240, 240, 0.3);
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.interest-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.interest-btn.none {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.interest-btn.pending {
+  background-color: #FFA500;
+  color: white;
+  cursor: not-allowed;
+}
+
+.interest-btn.accepted {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.interest-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.interest-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.interest-success-popup {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.interest-success-content {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  white-space: nowrap;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translate(-50%, -100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.success-icon {
+  font-size: 20px;
 }
