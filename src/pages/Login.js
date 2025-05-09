@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import "./login.css"; 
 
-function Login({ closeModal }) {
+function Login({ closeModal, onSignupClick }) {  // Updated props
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,6 +13,7 @@ function Login({ closeModal }) {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [resetStep, setResetStep] = useState(1);
+  const navigate = useNavigate();
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
@@ -164,6 +165,13 @@ function Login({ closeModal }) {
     }
   };
 
+  const handleSignupClick = (e) => {
+    e.preventDefault();
+    if (onSignupClick) {
+      onSignupClick();
+    }
+  };
+
   return (
     <div className="login-modal">
       {!showForgotPassword ? (
@@ -210,6 +218,15 @@ function Login({ closeModal }) {
             }}>
               Forgot Password?
             </button>
+          </div>
+          
+          {/* Add signup link */}
+          <div className="signup-link">
+            <p>Don't have an account? 
+              <button onClick={handleSignupClick}>
+                Sign up
+              </button>
+            </p>
           </div>
         </div>
       ) : (

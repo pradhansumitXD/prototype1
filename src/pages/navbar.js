@@ -72,6 +72,7 @@ function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
     navigate("/"); 
   };
@@ -128,13 +129,13 @@ function Navbar() {
 
       {isLoginModalOpen && (
         <div className="login-modal-container">
-          <Login closeModal={closeLoginModal} />
+          <Login closeModal={closeLoginModal} onSignupClick={openSignupModal} />
         </div>
       )}
 
       {isSignupModalOpen && (
         <div className="signup-modal-container">
-          <Signup closeModal={closeSignupModal} />
+          <Signup closeModal={closeSignupModal} onLoginClick={openLoginModal} />
         </div>
       )}
     </nav>

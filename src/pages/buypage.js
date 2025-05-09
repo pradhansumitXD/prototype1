@@ -114,22 +114,27 @@ const PreviewModal = ({ listing, onClose, fetchSellerDetails }) => {
     }
   };
 
+  // In PreviewModal component
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return car1;
     
     try {
       const url = imageUrl.toString().trim();
-      if (url.startsWith('/uploads/')) {
-        return `http://localhost:5002${url}`;
+      // Handle array of URLs
+      if (Array.isArray(url)) {
+        return url[0] ? processImageUrl(url[0]) : car1;
       }
-      if (url.startsWith('http')) {
-        return url;
-      }
-      return `http://localhost:5002/uploads/${encodeURIComponent(url)}`;
+      return processImageUrl(url);
     } catch (error) {
       console.error('Error in getImageUrl:', error);
       return car1;
     }
+  };
+  
+  const processImageUrl = (url) => {
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads/')) return `http://localhost:5002${url}`;
+    return `http://localhost:5002/uploads/${encodeURIComponent(url)}`;
   };
 
   const handlePrevImage = (e) => {

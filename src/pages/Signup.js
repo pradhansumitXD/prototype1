@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './signup.css'; 
 
-function Signup({ closeModal }) {
+function Signup({ closeModal, onLoginClick }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [signupName, setSignupName] = useState('');
@@ -13,6 +13,7 @@ function Signup({ closeModal }) {
   const [verificationCode, setVerificationCode] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); 
   const [successMessage, setSuccessMessage] = useState(''); 
+  const [userData, setUserData] = useState(null);
 
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,49 +23,6 @@ function Signup({ closeModal }) {
   const validatePhone = (phone) => {
     const regex = /^\d{10}$/;
     return regex.test(phone);
-  };
-
-  const handleVerification = async (e) => {
-    e.preventDefault();
-    setErrorMessage('');
-    setSuccessMessage('Verifying code...');
-
-    try {
-      const response = await axios.post('http://localhost:5002/api/auth/verify-otp', {
-        email: signupEmail.toLowerCase(),
-        verificationToken: verificationCode
-      });
-
-      if (response.data.success) {
-        localStorage.setItem('userEmail', signupEmail.toLowerCase());
-        localStorage.setItem('userName', signupName);
-        setSuccessMessage('Account verified successfully! You can now login.');
-        
-        setTimeout(() => {
-          setSuccessMessage('');
-        }, 2000);
-
-        setTimeout(() => {
-          closeModal();
-          navigate('/', { 
-            replace: true,
-            state: { 
-              isNewUser: true,
-              message: 'Account verified! Please login with your credentials.',
-              email: signupEmail.toLowerCase(),
-              name: signupName
-            }
-          });
-        }, 1500);
-      }
-    } catch (error) {
-      console.error('Verification error:', error.response?.data || error);
-      setErrorMessage(error.response?.data?.message || 'Verification failed. Please try again.');
-      setSuccessMessage('');
-      setTimeout(() => {
-        setErrorMessage('');
-      }, 2000);
-    }
   };
 
   const handleInitialSubmit = async (e) => {
@@ -104,7 +62,18 @@ function Signup({ closeModal }) {
         return;
       }
 
-      const response = await fetch('http://localhost:5002/api/auth/register', {
+      // Store user data temporarily instead of creating account
+      setUserData({
+        username: signupName.trim(),
+        email: signupEmail.trim().toLowerCase(),
+        phone: signupPhone.trim(),
+        password: signupPassword,
+        role: 'user',
+        adminEmail: 'pradhansumit957@gmail.com'
+      });
+
+      // Request verification code
+      const verifyResponse = await fetch('http://localhost:5002/api/auth/send-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -114,16 +83,13 @@ function Signup({ closeModal }) {
           email: signupEmail.trim().toLowerCase(),
           phone: signupPhone.trim(),
           password: signupPassword,
-          role: 'user',
           adminEmail: 'pradhansumit957@gmail.com'
         })
       });
 
-      const data = await response.json();
-      console.log('Registration response:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+      const verifyData = await verifyResponse.json();
+      if (!verifyResponse.ok) {
+        throw new Error(verifyData.message || 'Failed to send verification code');
       }
 
       setSuccessMessage('Verification code has been sent to admin. Please contact admin for the code.');
@@ -136,10 +102,57 @@ function Signup({ closeModal }) {
     }
   };
 
+  const handleVerification = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('Verifying code...');
+  
+    try {
+      // Only verify the OTP and create user in one step
+      const verifyResponse = await axios.post('http://localhost:5002/api/auth/verify-otp', {
+        email: signupEmail.toLowerCase(),
+        verificationToken: verificationCode
+      });
+  
+      if (verifyResponse.data.success) {
+        setSuccessMessage('Account created and verified successfully! You can now login.');
+        
+        setTimeout(() => {
+          closeModal();
+          navigate('/', { 
+            replace: true,
+            state: { 
+              isNewUser: true,
+              message: 'Account created and verified! Please login with your credentials.',
+              email: signupEmail.toLowerCase(),
+              name: signupName
+            }
+          });
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Verification error:', error.response?.data || error);
+      setErrorMessage(error.response?.data?.message || 'Verification failed. Please try again.');
+      setSuccessMessage('');
+      setTimeout(() => {
+        setErrorMessage('');
+      }, 2000);
+    }
+  };
+
+  const handleLoginClick = (e) => {
+    e.preventDefault();
+    if (onLoginClick) {
+      onLoginClick();
+    }
+  };
+
   return (
     <div className="signup-modal">
-      <button className="close-btn" onClick={closeModal}>✖</button>
-      <h2>Signup</h2>
+      <div className="modal-header">
+        <button className="close-btn" onClick={closeModal}>×</button>
+        <h2>Signup</h2>
+      </div>
       {step === 1 ? (
         <form onSubmit={handleInitialSubmit}>
           <div className="input-container">
@@ -206,6 +219,14 @@ function Signup({ closeModal }) {
       )}
       {successMessage && <p className="success-message">{successMessage}</p>}
       {errorMessage && <p className="error-message">{errorMessage}</p>}
+      
+      <div className="login-link">
+        <p>Already have an account? 
+          <button onClick={handleLoginClick}>
+            Login
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

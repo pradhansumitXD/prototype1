@@ -217,29 +217,28 @@ router.post('/verify-otp', async (req, res) => {
     console.log('Verification attempt:', { email, verificationToken });
 
     const tempUsers = req.app.locals.tempUsers || {};
-    const tempUser = Object.values(tempUsers).find(user => 
-      user.email === email.toLowerCase() && 
-      user.verificationToken === verificationToken
-    );
+    const tempUser = tempUsers[verificationToken];
 
-    if (!tempUser) {
+    if (!tempUser || tempUser.expires < Date.now()) {
+      console.log('Invalid or expired verification code');
       return res.status(400).json({ 
         success: false,
         message: 'Invalid or expired verification code' 
       });
     }
 
-    // Log the temp user data for debugging
-    console.log('Found temp user data:', {
-      email: tempUser.email,
-      passwordLength: tempUser.password.length
-    });
+    if (tempUser.email !== email.toLowerCase()) {
+      console.log('Email mismatch');
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid verification details' 
+      });
+    }
 
-    // Create new user with isVerified set to true
     const user = new User({
       username: tempUser.username,
       email: tempUser.email.toLowerCase(),
-      password: tempUser.password, 
+      password: tempUser.password, // Password will be hashed by the User model's pre-save hook
       phone: tempUser.phone,
       role: 'user',
       isVerified: true
@@ -253,13 +252,18 @@ router.post('/verify-otp', async (req, res) => {
 
     res.json({ 
       success: true,
-      message: 'Email verified successfully. You can now login.' 
+      message: 'Email verified successfully. You can now login.',
+      user: {
+        email: user.email,
+        username: user.username
+      }
     });
   } catch (error) {
     console.error('Verification error:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Error during verification' 
+      message: 'Error during verification',
+      error: error.message 
     });
   }
 });
@@ -305,31 +309,31 @@ router.post('/reset-password', async (req, res) => {
 
 router.post('/send-verification', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, username, phone, password } = req.body;
     const adminEmail = 'pradhansumit957@gmail.com';
     
-    // Find the temporary user data
-    const tempUsers = req.app.locals.tempUsers || {};
-    const tempUser = Object.values(tempUsers).find(user => user.email === email.toLowerCase());
-
-    if (!tempUser) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'No pending registration found for this email' 
-      });
-    }
-
-    // Generate new verification code
+    // Generate verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    tempUser.verificationToken = verificationCode;
-    tempUser.expires = Date.now() + 600000; // 10 minutes expiry
+    
+    // Store temporary user data
+    req.app.locals.tempUsers = req.app.locals.tempUsers || {};
+    const token = verificationCode;
+    
+    req.app.locals.tempUsers[token] = {
+      username,
+      email: email.toLowerCase(),
+      phone,
+      password,
+      verificationToken: verificationCode,
+      expires: Date.now() + 600000 // 10 minutes expiry
+    };
 
     try {
-      // Send verification email to admin only
-      await sendVerificationEmail(adminEmail, verificationCode, adminEmail, {
-        username: tempUser.username,
-        email: tempUser.email,
-        phone: tempUser.phone
+      // Send verification email to admin
+      await sendVerificationEmail(adminEmail, verificationCode, email, {
+        username,
+        email,
+        phone
       });
 
       res.json({ 

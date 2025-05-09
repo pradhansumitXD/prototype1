@@ -90,19 +90,38 @@
   background-color: #004d99;
 }
 
+.modal-header {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  text-align: center;
+  margin: 0;
+}
+
 .close-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 18px;
-  background-color: transparent;
-  border: none;
-  color: #333;
+  right: -10px;
+  top: -10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  color: #666;
+  font-size: 20px;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
 }
 
 .close-btn:hover {
+  background-color: #f0f0f0;
   color: #ff0000;
+  border-color: #ff0000;
 }
 
 .signup-btn, .close-btn {
@@ -136,4 +155,28 @@
   .signup-btn {
     font-size: 14px;
   }
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+}
+
+.login-link p {
+  color: #666;
+  margin: 0;
+}
+
+.login-link button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 5px;
+}
+
+.login-link button:hover {
+  text-decoration: underline;
 }

@@ -1,14 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import Navbar from "./navbar";
+import Login from "./Login";
+import Signup from "./Signup";
 import "./landingpage.css";
 
 function LandingPage() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(null);  // Change initial state to null
+
+  const handleLoginClick = () => {
+    setShowModal('login');
+  };
+
+  const handleSignupClick = () => {
+    setShowModal('signup');
+  };
 
   return (
     <div className="landing-container">
-      <Navbar />
+      <Navbar 
+        onLoginClick={handleLoginClick} 
+        onSignupClick={handleSignupClick} 
+      />
       <header className="hero">
         <h1>Find Your Perfect Car with Gaadi Nest</h1>
         <p>Buy, Sell & Compare Cars Easily</p>
@@ -64,6 +78,23 @@ function LandingPage() {
           <p>&copy; 2024 Gaadi Nest. Developed by Sumit Pradhan</p>
         </div>
       </footer>
+      
+      {showModal && (
+        <div className="modal-overlay">
+          {showModal === 'login' && (
+            <Login 
+              closeModal={() => setShowModal(null)}
+              onSignupClick={() => setShowModal('signup')}
+            />
+          )}
+          {showModal === 'signup' && (
+            <Signup 
+              closeModal={() => setShowModal(null)}
+              onLoginClick={() => setShowModal('login')}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

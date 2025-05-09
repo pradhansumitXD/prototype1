@@ -217,3 +217,27 @@
   color: #004d99;
   text-decoration: none;
 }
+
+.signup-link {
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+}
+
+.signup-link p {
+  color: #666;
+  margin: 0;
+}
+
+.signup-link button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 5px;
+}
+
+.signup-link button:hover {
+  text-decoration: underline;
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom'; 
+import { Route, Routes, Navigate, useNavigate } from 'react-router-dom'; 
 import LandingPage from './pages/landingpage';  
 import Profile from './pages/profile'; 
 import Login from './pages/Login';  
@@ -15,33 +15,34 @@ import AdminSettings from './pages/AdminSettings';
 import ManageListings from './pages/ManageListings';
 import AdminUserCreate from './pages/AdminUserCreate';  
 import EmailVerification from './pages/EmailVerification';  // Add this import
+import './styles/modal.css';
 
 const ProtectedRoute = ({ element, redirectTo, condition }) => {
   return condition ? element : <Navigate to={redirectTo} replace />;
 };
 
-// Move this into the App component and add proper checks
 function App() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(() => {
     try {
       const storedUser = localStorage.getItem('user');
       return storedUser ? JSON.parse(storedUser) : null;
     } catch (error) {
       console.error('Error parsing user data:', error);
-      localStorage.removeItem('user'); // Clear invalid data
+      localStorage.removeItem('user');
       return null;
     }
   });
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user && user.role === 'admin';
 
   return (
     <div className="App">
       <Routes>
-        <Route path="/" element={<LandingPage />} /> 
-        <Route path="/profile" element={<Profile />} /> 
-        <Route path="/login" element={<Login />} />    
-        <Route path="/signup" element={<Signup />} />  
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/login" element={<Navigate to="/" state={{ showModal: 'login' }} />} />
+        <Route path="/signup" element={<Navigate to="/" state={{ showModal: 'signup' }} />} />
         <Route path="/buy" element={<BuyPage />} />
         <Route path="/sell" element={<SellPage />} />  
         <Route path="/compare" element={<CompareCar />} /> 
